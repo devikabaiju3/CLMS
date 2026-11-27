@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage | Community Learning Center</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-badge">CLC</span>
+      <div>
+        <h1>Community Learning Center</h1>
+        <p>Community Education Management</p>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="manage.html" class="nav-link active">Manage</a>
+      <a href="reports.html" class="nav-link">Reports &amp; Notices</a>
+    </nav>
+    <div class="user-box">
+      <span id="nav-user-badge" class="role-badge">Guest</span>
+      <span id="nav-user-name" class="user-name">Not Signed In</span>
+      <button id="btn-logout" type="button" class="btn btn-sm btn-outline" onclick="logoutUser()">Logout</button>
+    </div>
+  </header>
+
+  <main id="page-manage" class="container">
+    <div id="toast-msg" class="toast" style="display: none;"></div>
+
+    <!-- Guest Guard -->
+    <section class="guest-only card center-box">
+      <h2>Sign In Required</h2>
+      <p class="muted">Please sign in to access learners, classes, attendance, or your records.</p>
+      <div class="btn-row center-row">
+        <a href="index.html" class="btn btn-primary">Go to Sign In</a>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('admin')">Demo Admin</button>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('instructor1')">Demo Instructor</button>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('learner1')">Demo Learner</button>
+      </div>
+    </section>
+
+    <!-- Authenticated Manage Workspace -->
+    <section class="auth-only">
+      <div class="page-head">
+        <div>
+          <h2>Center Operations</h2>
+          <p class="muted">Role-based tools for learners, instructors, classes, attendance, and progress.</p>
+        </div>
+        <div class="tab-bar">
+          <button id="tab-btn-learners" type="button" class="tab-btn admin-only" onclick="showTab('learners')">Learners</button>
+          <button id="tab-btn-classes" type="button" class="tab-btn admin-only" onclick="showTab('classes')">Classes &amp; Instructors</button>
+          <button id="tab-btn-attendance" type="button" class="tab-btn staff-only" onclick="showTab('attendance')">Attendance</button>
+          <button id="tab-btn-progress" type="button" class="tab-btn staff-only" onclick="showTab('progress')">Progress Notes</button>
+          <button id="tab-btn-myrecords" type="button" class="tab-btn learner-only" onclick="showTab('myrecords')">My Learning Records</button>
+        </div>
+      </div>
+
+      <!-- TAB 1: LEARNERS (ADMIN) -->
+      <div id="tab-learners" class="tab-panel admin-only">
+        <div class="grid-2">
+          <article class="card">
+            <h3 id="learner-form-heading">Register New Learner</h3>
+            <form id="learner-form" onsubmit="saveLearner(event)">
+              <input type="hidden" id="learner-edit-id">
+              <div class="form-group">
+                <label for="learner-name">Full Name *</label>
+                <input type="text" id="learner-name" placeholder="e.g. Aarav Mehta" required>
+              </div>
+              <div class="form-group">
+                <label for="learner-email">Email Address *</label>
+                <input type="email" id="learner-email" placeholder="aarav@mail.com" required>
+              </div>
+              <div class="form-group">
+                <label for="learner-phone">10-Digit Phone *</label>
+                <input type="tel" id="learner-phone" pattern="[0-9]{10}" placeholder="9876543210" required>
+              </div>
+              <div class="form-group">
+                <label for="learner-address">Area / Address *</label>
+                <input type="text" id="learner-address" placeholder="Sector 5, City Center" required>
+              </div>
+              <div class="btn-row">
+                <button type="submit" class="btn btn-primary">Save Learner</button>
+                <button type="button" class="btn btn-outline" onclick="resetLearnerForm()">Clear</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <h3>Registered Learners (<span id="learner-count">0</span>)</h3>
+              <input type="text" id="learner-search" class="search-input" placeholder="Search name or email..." oninput="renderLearners()">
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name &amp; Login</th>
+                    <th>Contact</th>
+                    <th>Enrolled</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="learners-tbody"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- TAB 2: CLASSES & INSTRUCTORS (ADMIN) -->
+      <div id="tab-classes" class="tab-panel admin-only">
+        <div class="grid-2">
+          <article class="card">
+            <h3>Add Volunteer Instructor</h3>
+            <form id="instructor-form" onsubmit="saveInstructor(event)">
+              <div class="form-group">
+                <label for="inst-name">Full Name *</label>
+                <input type="text" id="inst-name" placeholder="e.g. Ms. Neha Gupta" required>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="inst-email">Email *</label>
+                  <input type="email" id="inst-email" placeholder="neha@clc.org" required>
+                </div>
+                <div class="form-group">
+                  <label for="inst-phone">10-Digit Phone *</label>
+                  <input type="tel" id="inst-phone" pattern="[0-9]{10}" placeholder="9876509999" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="inst-spec">Subject Specialty *</label>
+                <input type="text" id="inst-spec" placeholder="e.g. Science / Coding" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Add Instructor</button>
+            </form>
+            <hr class="divider">
+            <h4>Volunteer Instructors</h4>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Specialty</th>
+                    <th>Classes</th>
+                  </tr>
+                </thead>
+                <tbody id="instructors-tbody"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card">
+            <h3>Create Class &amp; Assign Instructor</h3>
+            <form id="class-form" onsubmit="saveClass(event)">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="cls-name">Class Name *</label>
+                  <input type="text" id="cls-name" placeholder="e.g. Spoken English" required>
+                </div>
+                <div class="form-group">
+                  <label for="cls-subject">Subject *</label>
+                  <input type="text" id="cls-subject" placeholder="e.g. English" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cls-instructor">Assign Instructor (Clash Checked) *</label>
+                <select id="cls-instructor" required></select>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="cls-day">Day *</label>
+                  <select id="cls-day" required>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="cls-time">Time Slot *</label>
+                  <select id="cls-time" required>
+                    <option value="09:00 AM">09:00 AM</option>
+                    <option value="10:30 AM">10:30 AM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="04:00 PM">04:00 PM</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label for="cls-room">Room *</label>
+                  <input type="text" id="cls-room" placeholder="Room 101" required>
+                </div>
+                <div class="form-group">
+                  <label for="cls-capacity">Capacity *</label>
+                  <input type="number" id="cls-capacity" min="5" max="60" value="20" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Create Class</button>
+            </form>
+          </article>
+        </div>
+
+        <article class="card section-gap">
+          <h3>Class List &amp; Learner Enrollment</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th>Schedule</th>
+                  <th>Instructor</th>
+                  <th>Enrolled</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="classes-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- Inline Learner Enrollment Panel -->
+        <article id="enroll-panel" class="card section-gap highlight-card" style="display: none;">
+          <div class="card-head">
+            <h4 id="enroll-class-title">Enroll Learners</h4>
+            <button type="button" class="btn btn-sm btn-outline" onclick="closeEnrollPanel()">Close</button>
+          </div>
+          <input type="hidden" id="enroll-class-id">
+          <div id="enroll-checkboxes" class="checkbox-grid"></div>
+          <div class="btn-row section-gap-sm">
+            <button type="button" class="btn btn-primary" onclick="saveEnrollment()">Save Enrollment</button>
+          </div>
+        </article>
+      </div>
+
+      <!-- TAB 3: ATTENDANCE (ADMIN & INSTRUCTOR) -->
+      <div id="tab-attendance" class="tab-panel staff-only">
+        <article class="card">
+          <div class="card-head">
+            <h3>Mark Class Attendance</h3>
+            <div class="btn-row">
+              <select id="att-class" onchange="renderAttendanceSheet()"></select>
+              <input type="date" id="att-date" onchange="renderAttendanceSheet()">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Learner Name</th>
+                  <th>Phone</th>
+                  <th>Attendance Status</th>
+                </tr>
+              </thead>
+              <tbody id="att-tbody"></tbody>
+            </table>
+          </div>
+          <div class="btn-row section-gap-sm">
+            <button type="button" class="btn btn-primary" onclick="saveAttendance()">Save Attendance</button>
+          </div>
+        </article>
+      </div>
+
+      <!-- TAB 4: PROGRESS NOTES (ADMIN & INSTRUCTOR) -->
+      <div id="tab-progress" class="tab-panel staff-only">
+        <div class="grid-2">
+          <article class="card">
+            <h3>Record Progress Note</h3>
+            <form id="prog-form" onsubmit="saveProgressNote(event)">
+              <div class="form-group">
+                <label for="prog-class">Class *</label>
+                <select id="prog-class" onchange="populateProgressLearners()" required></select>
+              </div>
+              <div class="form-group">
+                <label for="prog-learner">Learner *</label>
+                <select id="prog-learner" required></select>
+              </div>
+              <div class="form-group">
+                <label for="prog-rating">Rating (1 to 5 Stars) *</label>
+                <select id="prog-rating" required>
+                  <option value="5">5 - Excellent</option>
+                  <option value="4">4 - Very Good</option>
+                  <option value="3">3 - Good</option>
+                  <option value="2">2 - Needs Practice</option>
+                  <option value="1">1 - Needs Attention</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="prog-comment">Instructor Feedback *</label>
+                <textarea id="prog-comment" rows="3" placeholder="Write strengths or areas to improve..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Progress Note</button>
+            </form>
+          </article>
+
+          <article class="card">
+            <h3>Recent Progress Notes</h3>
+            <div id="prog-list" class="feed-list"></div>
+          </article>
+        </div>
+      </div>
+
+      <!-- TAB 5: MY RECORDS (LEARNER) -->
+      <div id="tab-myrecords" class="tab-panel learner-only">
+        <div class="grid-2">
+          <article class="card">
+            <h3>My Enrolled Classes</h3>
+            <div id="my-classes-list" class="feed-list"></div>
+            <h3 class="section-gap-sm">Instructor Progress Feedback</h3>
+            <div id="my-notes-list" class="feed-list"></div>
+          </article>
+          <article class="card">
+            <h3>My Attendance History</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Class</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="my-att-tbody"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Community Learning Center Management &bull; Built with HTML, CSS &amp; JavaScript</p>
+    <button type="button" class="link-btn" onclick="resetDemoData()">Reset Demo Data</button>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports &amp; Notices | Community Learning Center</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-badge">CLC</span>
+      <div>
+        <h1>Community Learning Center</h1>
+        <p>Community Education Management</p>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="manage.html" class="nav-link">Manage</a>
+      <a href="reports.html" class="nav-link active">Reports &amp; Notices</a>
+    </nav>
+    <div class="user-box">
+      <span id="nav-user-badge" class="role-badge">Guest</span>
+      <span id="nav-user-name" class="user-name">Not Signed In</span>
+      <button id="btn-logout" type="button" class="btn btn-sm btn-outline" onclick="logoutUser()">Logout</button>
+    </div>
+  </header>
+
+  <main id="page-reports" class="container">
+    <div id="toast-msg" class="toast" style="display: none;"></div>
+
+    <!-- Guest Guard -->
+    <section class="guest-only card center-box">
+      <h2>Sign In Required</h2>
+      <p class="muted">Please sign in to read announcements and view center reports.</p>
+      <div class="btn-row center-row">
+        <a href="index.html" class="btn btn-primary">Go to Sign In</a>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('admin')">Demo Admin</button>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('instructor1')">Demo Instructor</button>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('learner1')">Demo Learner</button>
+      </div>
+    </section>
+
+    <section class="auth-only">
+      <div class="page-head">
+        <div>
+          <h2>Announcements &amp; Summary Reports</h2>
+          <p class="muted">Center notices, attendance statistics, class strength, and instructor workload.</p>
+        </div>
+        <button type="button" class="btn btn-outline no-print" onclick="window.print()">Print Report</button>
+      </div>
+
+      <!-- Announcements Section -->
+      <div class="grid-2">
+        <article class="card staff-only no-print">
+          <h3>Post New Announcement</h3>
+          <form id="notice-form" onsubmit="saveAnnouncement(event)">
+            <div class="form-group">
+              <label for="notice-title">Title *</label>
+              <input type="text" id="notice-title" placeholder="e.g. Science Workshop Tomorrow" required>
+            </div>
+            <div class="form-group">
+              <label for="notice-target">Target Audience *</label>
+              <select id="notice-target" required></select>
+            </div>
+            <div class="form-group">
+              <label for="notice-msg">Message *</label>
+              <textarea id="notice-msg" rows="3" placeholder="Enter announcement details..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Publish Notice</button>
+          </form>
+        </article>
+
+        <article class="card notice-board-card">
+          <div class="card-head">
+            <h3>Notice Board</h3>
+            <select id="notice-filter" class="filter-select" onchange="renderAnnouncements()">
+              <option value="all">All Visible Notices</option>
+            </select>
+          </div>
+          <div id="notices-list" class="feed-list"></div>
+        </article>
+      </div>
+
+      <!-- Summary KPI Strip -->
+      <div class="grid-4 stats-grid section-gap">
+        <div class="stat-card">
+          <div id="rep-att-rate" class="stat-val">0%</div>
+          <div class="stat-lbl">Overall Attendance</div>
+        </div>
+        <div class="stat-card">
+          <div id="rep-sessions" class="stat-val">0</div>
+          <div class="stat-lbl">Attendance Entries</div>
+        </div>
+        <div class="stat-card">
+          <div id="rep-avg-fill" class="stat-val">0%</div>
+          <div class="stat-lbl">Avg Class Capacity Used</div>
+        </div>
+        <div class="stat-card">
+          <div id="rep-notes-count" class="stat-val">0</div>
+          <div class="stat-lbl">Progress Notes</div>
+        </div>
+      </div>
+
+      <!-- Learner Personal Report (Learner Role Only) -->
+      <article class="card learner-only section-gap">
+        <h3>My Personal Attendance Summary</h3>
+        <div id="rep-my-summary" class="feed-list"></div>
+      </article>
+
+      <!-- Visual CSS Progress Bar Reports -->
+      <div class="grid-2 section-gap">
+        <article class="card">
+          <h3>Attendance Percentage by Class</h3>
+          <div id="rep-att-bars" class="bars-list"></div>
+        </article>
+        <article class="card">
+          <h3>Class Strength (Enrolled vs Capacity)</h3>
+          <div id="rep-strength-bars" class="bars-list"></div>
+        </article>
+      </div>
+
+      <article id="rep-load-card" class="card admin-only section-gap">
+        <h3>Volunteer Instructor Teaching Load</h3>
+        <div id="rep-load-bars" class="bars-list"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer no-print">
+    <p>Community Learning Center Management &bull; Built with HTML, CSS &amp; JavaScript</p>
+    <button type="button" class="link-btn" onclick="resetDemoData()">Reset Demo Data</button>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
