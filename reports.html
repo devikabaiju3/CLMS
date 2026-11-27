@@ -30,15 +30,14 @@
   <main id="page-reports" class="container">
     <div id="toast-msg" class="toast no-print" style="display: none;"></div>
 
-    <!-- Guest Guard -->
     <section class="guest-only card center-box">
       <h2>Sign In Required</h2>
       <p class="muted">Please sign in to read announcements and view center reports.</p>
       <div class="btn-row center-row">
         <a href="index.html" class="btn btn-primary">Go to Sign In</a>
-        <button type="button" class="btn btn-outline" onclick="quickLogin('admin')">Demo Admin</button>
-        <button type="button" class="btn btn-outline" onclick="quickLogin('instructor1')">Demo Instructor</button>
-        <button type="button" class="btn btn-outline" onclick="quickLogin('learner1')">Demo Learner</button>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('admin@clc.org')">Demo Admin</button>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('ananya@clc.org')">Demo Instructor</button>
+        <button type="button" class="btn btn-outline" onclick="quickLogin('aarav@mail.com')">Demo Learner</button>
       </div>
     </section>
 
@@ -51,7 +50,6 @@
         <button type="button" class="btn btn-outline no-print" onclick="window.print()">Print Report</button>
       </div>
 
-      <!-- Announcements Section -->
       <div class="grid-2">
         <article class="card staff-only no-print">
           <h3>Post New Announcement</h3>
@@ -83,7 +81,6 @@
         </article>
       </div>
 
-      <!-- Summary KPI Strip -->
       <div class="grid-4 stats-grid section-gap">
         <div class="stat-card">
           <div id="rep-att-rate" class="stat-val">0%</div>
@@ -103,13 +100,11 @@
         </div>
       </div>
 
-      <!-- Learner Personal Report (Learner Role Only) -->
       <article class="card learner-only section-gap">
         <h3>My Personal Attendance Summary</h3>
         <div id="rep-my-summary" class="feed-list"></div>
       </article>
 
-      <!-- Visual CSS Progress Bar Reports -->
       <div class="grid-2 section-gap">
         <article class="card">
           <h3>Attendance Percentage by Class</h3>
@@ -129,7 +124,7 @@
   </main>
 
   <footer class="footer no-print">
-    <p>Community Learning Center Management &bull; Built with HTML, CSS &amp; JavaScript</p>
+    <p>Community Learning Center Management</p>
     <button type="button" class="link-btn" onclick="resetDemoData()">Reset Demo Data</button>
   </footer>
 

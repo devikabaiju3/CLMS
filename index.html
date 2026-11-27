@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-role="guest">
-  <!-- Top Navigation Header -->
   <header class="topbar">
     <div class="brand">
       <span class="brand-badge">CLC</span>
@@ -29,17 +28,16 @@
   </header>
 
   <main id="page-home" class="container">
-    <div id="toast-msg" class="toast" style="display: none;"></div>
+    <div id="toast-msg" class="toast no-print" style="display: none;"></div>
 
-    <!-- Guest Landing & Sign In View -->
     <section class="guest-only">
       <div class="grid-2 hero-grid">
         <article class="card hero-card">
-          <span class="pill">Lightweight Education Platform</span>
+          <span class="pill">Community Education Platform</span>
           <h2>Manage Learners, Volunteer Instructors &amp; Classes in One Place</h2>
           <p class="muted">
-            Built for community learning centers to organize student registration, weekly class schedules,
-            daily attendance, progress notes, announcements, and summary reports with role-based access.
+            Organize learner registration, weekly class schedules, attendance,
+            progress notes, announcements, and reports with role-based access.
           </p>
           <div class="role-summary-grid">
             <div class="mini-box">
@@ -59,31 +57,52 @@
 
         <article class="card auth-card">
           <h3>Portal Sign In</h3>
-          <p class="muted">Enter credentials or use a quick demo role below.</p>
+          <p class="muted">Enter your email and password. New emails can sign up right away.</p>
+
           <form id="login-form" onsubmit="handleLogin(event)">
             <div class="form-group">
-              <label for="login-username">Username</label>
-              <input type="text" id="login-username" placeholder="e.g. admin" required>
+              <label for="login-email">Email</label>
+              <input type="email" id="login-email" placeholder="e.g. admin@clc.org" required>
             </div>
             <div class="form-group">
               <label for="login-password">Password</label>
-              <input type="password" id="login-password" placeholder="e.g. admin123" required>
+              <input type="password" id="login-password" placeholder="Enter password" required>
             </div>
-            <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+            <button id="login-submit-btn" type="submit" class="btn btn-primary btn-full">Sign In</button>
           </form>
+
+          <form id="signup-step" class="signup-box" style="display: none;" onsubmit="completeSignup(event)">
+            <p class="small-label">Email not found — choose a role to sign up (<span id="signup-email-label"></span>):</p>
+            <div class="form-group">
+              <label for="signup-name">Full Name</label>
+              <input type="text" id="signup-name" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+              <label for="signup-role">Select Role</label>
+              <select id="signup-role" required>
+                <option value="learner">Learner</option>
+                <option value="instructor">Volunteer Instructor</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary">Sign Up &amp; Sign In</button>
+              <button type="button" class="btn btn-outline" onclick="cancelSignup()">Back</button>
+            </div>
+          </form>
+
           <div class="demo-login-box">
             <p class="small-label">Quick Demo Accounts:</p>
             <div class="btn-row">
-              <button type="button" class="btn btn-sm btn-outline" onclick="quickLogin('admin')">Admin</button>
-              <button type="button" class="btn btn-sm btn-outline" onclick="quickLogin('instructor1')">Instructor</button>
-              <button type="button" class="btn btn-sm btn-outline" onclick="quickLogin('learner1')">Learner</button>
+              <button type="button" class="btn btn-sm btn-outline" onclick="quickLogin('admin@clc.org')">Admin</button>
+              <button type="button" class="btn btn-sm btn-outline" onclick="quickLogin('ananya@clc.org')">Instructor</button>
+              <button type="button" class="btn btn-sm btn-outline" onclick="quickLogin('aarav@mail.com')">Learner</button>
             </div>
           </div>
         </article>
       </div>
     </section>
 
-    <!-- Logged-In Dashboard View -->
     <section class="auth-only">
       <div class="page-head">
         <div>
@@ -116,7 +135,6 @@
       </div>
     </section>
 
-    <!-- Learner Self-Profile Card (Learner Role Only) -->
     <section class="learner-only card section-gap">
       <h3>Update My Contact Profile</h3>
       <form id="profile-form" class="grid-4 form-inline-grid" onsubmit="saveLearnerProfile(event)">
@@ -142,7 +160,6 @@
       </form>
     </section>
 
-    <!-- Weekly Class Schedule (Visible to All) -->
     <section class="card section-gap">
       <div class="card-head">
         <h3>Weekly Class Schedule</h3>
@@ -168,7 +185,7 @@
   </main>
 
   <footer class="footer">
-    <p>Community Learning Center Management &bull; Built with HTML, CSS &amp; JavaScript</p>
+    <p>Community Learning Center Management</p>
     <button type="button" class="link-btn" onclick="resetDemoData()">Reset Demo Data</button>
   </footer>
 
