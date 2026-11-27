@@ -643,6 +643,49 @@ tbody tr:hover {
   font-size: 0.84rem;
 }
 
+.sub-text {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+.empty-msg {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+/* ---------- Role-Based Access Visibility ---------- */
+body[data-role="guest"] .auth-only,
+body[data-role="guest"] .admin-only,
+body[data-role="guest"] .staff-only,
+body[data-role="guest"] .learner-only {
+  display: none;
+}
+
+body:not([data-role="guest"]) .guest-only {
+  display: none;
+}
+
+body[data-role="admin"] .learner-only {
+  display: none;
+}
+
+body[data-role="instructor"] .admin-only,
+body[data-role="instructor"] .learner-only {
+  display: none;
+}
+
+body[data-role="learner"] .admin-only,
+body[data-role="learner"] .staff-only {
+  display: none;
+}
+
+body[data-role="learner"] .notice-board-card {
+  grid-column: 1 / -1;
+}
+
 /* ---------- Responsive & Print ---------- */
 @media (max-width: 860px) {
   .grid-2,

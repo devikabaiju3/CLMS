@@ -6,7 +6,7 @@
   <title>Reports &amp; Notices | Community Learning Center</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-role="guest">
   <header class="topbar">
     <div class="brand">
       <span class="brand-badge">CLC</span>
@@ -23,12 +23,12 @@
     <div class="user-box">
       <span id="nav-user-badge" class="role-badge">Guest</span>
       <span id="nav-user-name" class="user-name">Not Signed In</span>
-      <button id="btn-logout" type="button" class="btn btn-sm btn-outline" onclick="logoutUser()">Logout</button>
+      <button id="btn-logout" type="button" class="btn btn-sm btn-outline auth-only" onclick="logoutUser()">Logout</button>
     </div>
   </header>
 
   <main id="page-reports" class="container">
-    <div id="toast-msg" class="toast" style="display: none;"></div>
+    <div id="toast-msg" class="toast no-print" style="display: none;"></div>
 
     <!-- Guest Guard -->
     <section class="guest-only card center-box">
