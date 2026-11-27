@@ -1,19 +1,19 @@
-const DATA_KEY = "clc_data_v3";
-const USER_KEY = "clc_user_v3";
+const DATA_KEY = "clc_data_v4";
+const USER_KEY = "clc_user_v4";
 
 const DEFAULT_DATA = {
   users: [
-    { email: "iona@lpu.in", password: "admin123", role: "admin", name: "Iona Sara Bino", linkedId: "" },
-    { email: "amreesh@clc.org", password: "inst123", role: "instructor", name: "Amreesh", linkedId: "inst-1" },
-    { email: "devika@mail.com", password: "learn123", role: "learner", name: "Devika M", linkedId: "lrn-1" }
+    { email: "iona@lpu.in", password: "123", role: "admin", name: "Iona Sara Bino", linkedId: "" },
+    { email: "amreesh@lpu.in", password: "123", role: "instructor", name: "Amreesh", linkedId: "inst-1" },
+    { email: "devika@lpu.in", password: "123", role: "learner", name: "Devika M", linkedId: "lrn-1" }
   ],
   instructors: [
-    { id: "inst-1", name: "Amreesh", email: "amreesh@clc.org", phone: "9876501001", specialty: "English" },
-    { id: "inst-2", name: "Mr. Vikram Nair", email: "vikram@clc.org", phone: "9876501002", specialty: "Coding" }
+    { id: "inst-1", name: "Amreesh", email: "amreesh@lpu.in", phone: "9876501001", specialty: "English" },
+    { id: "inst-2", name: "Mr. Vikram Nair", email: "vikram@lpu.in", phone: "9876501002", specialty: "Coding" }
   ],
   learners: [
-    { id: "lrn-1", name: "Devika M", email: "devika@mail.com", phone: "9876543210", address: "Sector 5" },
-    { id: "lrn-2", name: "Diya Sharma", email: "diya@mail.com", phone: "9876543211", address: "Green Park" }
+    { id: "lrn-1", name: "Devika M", email: "devika@lpu.in", phone: "9876543210", address: "Sector 5" },
+    { id: "lrn-2", name: "Diya Sharma", email: "diya@lpu.in", phone: "9876543211", address: "Green Park" }
   ],
   classes: [
     { id: "cls-1", name: "Spoken English", subject: "English", instructorId: "inst-1", day: "Monday", time: "09:00 AM", room: "Room 101", capacity: 20, learnerIds: ["lrn-1", "lrn-2"] },
