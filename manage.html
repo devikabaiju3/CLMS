@@ -64,7 +64,7 @@
           <article class="card">
             <h3 id="learner-form-heading">Register New Learner</h3>
             <form id="learner-form" onsubmit="saveLearner(event)">
-              <input type="hidden" id="learner-edit-id">
+
               <div class="form-group">
                 <label for="learner-name">Full Name *</label>
                 <input type="text" id="learner-name" placeholder="e.g. Aarav Mehta" required>
@@ -83,7 +83,7 @@
               </div>
               <div class="btn-row">
                 <button type="submit" class="btn btn-primary">Save Learner</button>
-                <button type="button" class="btn btn-outline" onclick="resetLearnerForm()">Clear</button>
+                <button type="reset" class="btn btn-outline">Clear</button>
               </div>
             </form>
           </article>
@@ -97,7 +97,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Name &amp; Login</th>
+                    <th>Name</th>
                     <th>Contact</th>
                     <th>Enrolled</th>
                     <th>Actions</th>

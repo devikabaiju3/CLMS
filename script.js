@@ -1,753 +1,257 @@
-/* =====================================================================
-   Community Learning Center Management - JavaScript (Beginner Friendly)
-   =====================================================================
-   How this file is organized:
-   1. Starter Demo Data & LocalStorage Helpers
-   2. Small Helper Functions (IDs, HTML safety, Toast alerts, Selects)
-   3. Login, Demo Switch & Role-Based Access
-   4. Home Page (Stats, Schedule Table, Learner Profile Update)
-   5. Manage Page - Learners & Instructors
-   6. Manage Page - Classes, Clash Check & Learner Enrollment
-   7. Manage Page - Attendance & Progress Notes
-   8. Manage Page - Learner Personal Records
-   9. Reports & Notices Page (Announcements, KPIs, Bar Reports)
-   10. Page Initialization
-   ===================================================================== */
+// Community Learning Center Management - Simple Beginner JavaScript
 
-const STORAGE_KEY = "clc_platform_data_v1";
-const SESSION_KEY = "clc_current_user_v1";
+const DATA_KEY = "clc_data_v1";
+const USER_KEY = "clc_user_v1";
 
-// Fixed demo admin account (kept simple, no signup flow needed)
-const ADMIN_ACCOUNT = {
-  id: "admin-1",
-  username: "admin",
-  password: "admin123",
-  role: "admin",
-  name: "Center Coordinator"
-};
+// Fixed demo accounts for the 3 roles (Admin, Instructor, Learner)
+const DEMO_USERS = [
+  { username: "admin", password: "admin123", role: "admin", name: "Center Coordinator", linkedId: "" },
+  { username: "instructor1", password: "inst123", role: "instructor", name: "Ms. Ananya Rao", linkedId: "inst-1" },
+  { username: "learner1", password: "learn123", role: "learner", name: "Aarav Mehta", linkedId: "lrn-1" }
+];
 
-// Used to sort the weekly schedule from Monday to Saturday
-const DAY_ORDER = {
-  Monday: 1,
-  Tuesday: 2,
-  Wednesday: 3,
-  Thursday: 4,
-  Friday: 5,
-  Saturday: 6
-};
-
-const TIME_ORDER = {
-  "09:00 AM": 1,
-  "10:30 AM": 2,
-  "02:00 PM": 3,
-  "04:00 PM": 4
-};
-
-// Starter data loaded on first visit or when clicking "Reset Demo Data"
+// Starter sample data so the portal works right away
 const DEFAULT_DATA = {
   instructors: [
-    {
-      id: "inst-1",
-      username: "instructor1",
-      password: "inst123",
-      name: "Ms. Ananya Rao",
-      email: "ananya@clc.org",
-      phone: "9876501001",
-      specialty: "English & Communication"
-    },
-    {
-      id: "inst-2",
-      username: "instructor2",
-      password: "inst123",
-      name: "Mr. Vikram Nair",
-      email: "vikram@clc.org",
-      phone: "9876501002",
-      specialty: "Mathematics & Coding"
-    }
+    { id: "inst-1", name: "Ms. Ananya Rao", email: "ananya@clc.org", phone: "9876501001", specialty: "English" },
+    { id: "inst-2", name: "Mr. Vikram Nair", email: "vikram@clc.org", phone: "9876501002", specialty: "Math & Coding" }
   ],
   learners: [
-    {
-      id: "lrn-1",
-      username: "learner1",
-      password: "learn123",
-      name: "Aarav Mehta",
-      email: "aarav@mail.com",
-      phone: "9876543210",
-      address: "Sector 5, City Center"
-    },
-    {
-      id: "lrn-2",
-      username: "learner2",
-      password: "learn123",
-      name: "Diya Sharma",
-      email: "diya@mail.com",
-      phone: "9876543211",
-      address: "Green Park"
-    },
-    {
-      id: "lrn-3",
-      username: "learner3",
-      password: "learn123",
-      name: "Rohan Verma",
-      email: "rohan@mail.com",
-      phone: "9876543212",
-      address: "Lake View"
-    },
-    {
-      id: "lrn-4",
-      username: "learner4",
-      password: "learn123",
-      name: "Meera Nair",
-      email: "meera@mail.com",
-      phone: "9876543213",
-      address: "Station Road"
-    }
+    { id: "lrn-1", name: "Aarav Mehta", email: "aarav@mail.com", phone: "9876543210", address: "Sector 5" },
+    { id: "lrn-2", name: "Diya Sharma", email: "diya@mail.com", phone: "9876543211", address: "Green Park" },
+    { id: "lrn-3", name: "Rohan Verma", email: "rohan@mail.com", phone: "9876543212", address: "Lake View" }
   ],
   classes: [
-    {
-      id: "cls-1",
-      name: "Spoken English Basics",
-      subject: "English",
-      instructorId: "inst-1",
-      day: "Monday",
-      time: "09:00 AM",
-      room: "Room 101",
-      capacity: 20,
-      learnerIds: ["lrn-1", "lrn-2", "lrn-3"]
-    },
-    {
-      id: "cls-2",
-      name: "Basic Computer & Web",
-      subject: "Coding",
-      instructorId: "inst-2",
-      day: "Wednesday",
-      time: "10:30 AM",
-      room: "Lab 1",
-      capacity: 15,
-      learnerIds: ["lrn-1", "lrn-4"]
-    },
-    {
-      id: "cls-3",
-      name: "Everyday Math Lab",
-      subject: "Mathematics",
-      instructorId: "inst-2",
-      day: "Friday",
-      time: "04:00 PM",
-      room: "Room 102",
-      capacity: 20,
-      learnerIds: ["lrn-2", "lrn-3", "lrn-4"]
-    }
+    { id: "cls-1", name: "Spoken English", subject: "English", instructorId: "inst-1", day: "Monday", time: "09:00 AM", room: "Room 101", capacity: 20, learnerIds: ["lrn-1", "lrn-2"] },
+    { id: "cls-2", name: "Basic Coding", subject: "Coding", instructorId: "inst-2", day: "Wednesday", time: "10:30 AM", room: "Lab 1", capacity: 15, learnerIds: ["lrn-1", "lrn-3"] },
+    { id: "cls-3", name: "Everyday Math", subject: "Math", instructorId: "inst-2", day: "Friday", time: "04:00 PM", room: "Room 102", capacity: 20, learnerIds: ["lrn-2", "lrn-3"] }
   ],
   attendance: [
-    { id: "att-1", classId: "cls-1", date: "2026-11-23", learnerId: "lrn-1", status: "present" },
-    { id: "att-2", classId: "cls-1", date: "2026-11-23", learnerId: "lrn-2", status: "present" },
-    { id: "att-3", classId: "cls-1", date: "2026-11-23", learnerId: "lrn-3", status: "late" },
-    { id: "att-4", classId: "cls-2", date: "2026-11-25", learnerId: "lrn-1", status: "present" },
-    { id: "att-5", classId: "cls-2", date: "2026-11-25", learnerId: "lrn-4", status: "absent" },
-    { id: "att-6", classId: "cls-3", date: "2026-11-20", learnerId: "lrn-2", status: "present" },
-    { id: "att-7", classId: "cls-3", date: "2026-11-20", learnerId: "lrn-3", status: "present" },
-    { id: "att-8", classId: "cls-3", date: "2026-11-20", learnerId: "lrn-4", status: "present" }
+    { classId: "cls-1", date: "2026-11-23", learnerId: "lrn-1", status: "present" },
+    { classId: "cls-1", date: "2026-11-23", learnerId: "lrn-2", status: "late" },
+    { classId: "cls-2", date: "2026-11-25", learnerId: "lrn-1", status: "present" },
+    { classId: "cls-2", date: "2026-11-25", learnerId: "lrn-3", status: "absent" }
   ],
   progressNotes: [
-    {
-      id: "note-1",
-      classId: "cls-1",
-      learnerId: "lrn-1",
-      instructorName: "Ms. Ananya Rao",
-      rating: 5,
-      comment: "Speaks clearly during group activities and helps classmates.",
-      date: "2026-11-24"
-    },
-    {
-      id: "note-2",
-      classId: "cls-2",
-      learnerId: "lrn-1",
-      instructorName: "Mr. Vikram Nair",
-      rating: 4,
-      comment: "Completed HTML layout practice cleanly; continue CSS spacing exercises.",
-      date: "2026-11-25"
-    },
-    {
-      id: "note-3",
-      classId: "cls-3",
-      learnerId: "lrn-2",
-      instructorName: "Mr. Vikram Nair",
-      rating: 5,
-      comment: "Strong problem-solving speed in fraction and percentage worksheets.",
-      date: "2026-11-21"
-    }
+    { classId: "cls-1", learnerId: "lrn-1", author: "Ms. Ananya Rao", rating: 5, comment: "Speaks clearly in group tasks.", date: "2026-11-24" },
+    { classId: "cls-2", learnerId: "lrn-1", author: "Mr. Vikram Nair", rating: 4, comment: "Good progress with HTML and CSS.", date: "2026-11-25" }
   ],
   announcements: [
-    {
-      id: "ann-1",
-      title: "Weekend Study Lab Open",
-      target: "all",
-      message: "The community library and computer lab will stay open this Saturday from 10:00 AM to 2:00 PM.",
-      author: "Center Coordinator",
-      authorUsername: "admin",
-      date: "2026-11-24"
-    },
-    {
-      id: "ann-2",
-      title: "Bring Practice Notebooks",
-      target: "cls-1",
-      message: "Please bring your vocabulary notebook for Monday's speaking practice session.",
-      author: "Ms. Ananya Rao",
-      authorUsername: "instructor1",
-      date: "2026-11-25"
-    },
-    {
-      id: "ann-3",
-      title: "Monthly Volunteer Check-In",
-      target: "instructors",
-      message: "Volunteer instructors will meet for 15 minutes after Friday classes to review attendance logs.",
-      author: "Center Coordinator",
-      authorUsername: "admin",
-      date: "2026-11-26"
-    }
+    { id: "ann-1", title: "Weekend Study Lab", target: "all", message: "Computer lab is open Saturday 10 AM to 2 PM.", author: "Center Coordinator", date: "2026-11-24" },
+    { id: "ann-2", title: "Bring Practice Notebook", target: "cls-1", message: "Please bring your notebook on Monday.", author: "Ms. Ananya Rao", date: "2026-11-25" },
+    { id: "ann-3", title: "Volunteer Meeting", target: "instructors", message: "Short instructor review after Friday class.", author: "Center Coordinator", date: "2026-11-26" }
   ]
 };
 
-let toastTimer = null;
-let activeTabName = "";
+let currentTab = "";
 
-/* =====================================================================
-   1. LocalStorage Read / Write
-   ===================================================================== */
-
-// Make a clean copy of starter data so edits never mutate DEFAULT_DATA
-function cloneDefaultData() {
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
-
-function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) {
-    const freshData = cloneDefaultData();
-    saveData(freshData);
-    return freshData;
-  }
-
-  try {
-    return JSON.parse(saved);
-  } catch (error) {
-    const freshData = cloneDefaultData();
-    saveData(freshData);
-    return freshData;
-  }
-}
-
-function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-function resetDemoData() {
-  const confirmed = window.confirm("Reset all learners, classes, attendance, and notices back to starter demo data?");
-  if (!confirmed) {
-    return;
-  }
-
-  saveData(cloneDefaultData());
-  localStorage.removeItem(SESSION_KEY);
-  activeTabName = "";
-  initPage();
-  showToast("Demo data restored.", "ok");
-}
-
-/* =====================================================================
-   2. Small Helper Functions
-   ===================================================================== */
-
-function getTodayDate() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-// Prevent HTML characters in user input from breaking table/card markup
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+// ---------- 1. Small Helpers & LocalStorage ----------
+function byId(id) {
+  return document.getElementById(id);
 }
 
 function findById(list, id) {
-  return list.find(function (item) {
-    return item.id === id;
-  });
+  return list.find((item) => item.id === id);
 }
 
-function createUniqueId(prefix) {
-  return prefix + "-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+// Escape special HTML characters so user text stays safe
+function safeText(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-// Create simple usernames like learner5 or instructor3 without duplicates
-function createUniqueUsername(data, prefix) {
-  let num = 1;
-  while (true) {
-    const candidate = prefix + num;
-    const inInstructors = data.instructors.some(function (inst) {
-      return inst.username === candidate;
-    });
-    const inLearners = data.learners.some(function (lrn) {
-      return lrn.username === candidate;
-    });
-    if (candidate !== ADMIN_ACCOUNT.username && !inInstructors && !inLearners) {
-      return candidate;
-    }
-    num = num + 1;
+function loadData() {
+  const saved = localStorage.getItem(DATA_KEY);
+  if (!saved) {
+    const copy = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    saveData(copy);
+    return copy;
   }
+  return JSON.parse(saved);
 }
 
-function showToast(message, type) {
-  const toast = document.getElementById("toast-msg");
-  if (!toast) {
-    return;
-  }
-
-  toast.textContent = message;
-  toast.className = type === "err" ? "toast no-print err" : "toast no-print ok";
-  toast.style.display = "block";
-
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-  }
-  toastTimer = setTimeout(function () {
-    toast.style.display = "none";
-  }, 3500);
+function saveData(data) {
+  localStorage.setItem(DATA_KEY, JSON.stringify(data));
 }
 
-// Reusable helper to fill any <select> dropdown safely
-function populateSelect(selectId, items, getValue, getLabel, emptyText) {
-  const select = document.getElementById(selectId);
-  if (!select) {
-    return;
-  }
-
-  const previousValue = select.value;
-  select.innerHTML = "";
-
-  if (items.length === 0) {
-    const emptyOption = document.createElement("option");
-    emptyOption.value = "";
-    emptyOption.textContent = emptyText;
-    select.appendChild(emptyOption);
-    return;
-  }
-
-  for (const item of items) {
-    const option = document.createElement("option");
-    option.value = getValue(item);
-    option.textContent = getLabel(item);
-    select.appendChild(option);
-  }
-
-  // Keep the previously selected value if it still exists
-  const stillExists = items.some(function (item) {
-    return getValue(item) === previousValue;
-  });
-  if (stillExists) {
-    select.value = previousValue;
-  }
+function resetDemoData() {
+  if (!confirm("Reset all demo data back to default?")) return;
+  saveData(JSON.parse(JSON.stringify(DEFAULT_DATA)));
+  localStorage.removeItem(USER_KEY);
+  currentTab = "";
+  initPage();
+  showToast("Demo data restored.", false);
 }
 
-function sortClassesBySchedule(classes) {
-  return classes.slice().sort(function (a, b) {
-    const dayDiff = (DAY_ORDER[a.day] || 99) - (DAY_ORDER[b.day] || 99);
-    if (dayDiff !== 0) {
-      return dayDiff;
-    }
-    return (TIME_ORDER[a.time] || 99) - (TIME_ORDER[b.time] || 99);
-  });
+function showToast(msg, isError) {
+  const box = byId("toast-msg");
+  if (!box) return;
+  box.textContent = msg;
+  box.className = isError ? "toast no-print err" : "toast no-print ok";
+  box.style.display = "block";
+  setTimeout(() => { box.style.display = "none"; }, 3000);
 }
 
-function getInstructorName(data, instructorId) {
-  const instructor = findById(data.instructors, instructorId);
-  return instructor ? instructor.name : "Unassigned";
+function getInstructorName(data, instId) {
+  const inst = findById(data.instructors, instId);
+  return inst ? inst.name : "Unassigned";
 }
 
-function getAccessibleClasses(data, user) {
-  if (!user) {
-    return [];
-  }
-  if (user.role === "admin") {
-    return sortClassesBySchedule(data.classes);
-  }
-  if (user.role === "instructor") {
-    return sortClassesBySchedule(
-      data.classes.filter(function (cls) {
-        return cls.instructorId === user.id;
-      })
-    );
-  }
-  return sortClassesBySchedule(
-    data.classes.filter(function (cls) {
-      return cls.learnerIds.includes(user.id);
-    })
-  );
+function calcAttendancePercent(records) {
+  if (records.length === 0) return 0;
+  const attended = records.filter((r) => r.status === "present" || r.status === "late").length;
+  return Math.round((attended / records.length) * 100);
 }
 
-function getVisibleAnnouncements(data, user) {
-  if (!user) {
-    return [];
-  }
-  if (user.role === "admin") {
-    return data.announcements;
-  }
-
-  const myClassIds = getAccessibleClasses(data, user).map(function (cls) {
-    return cls.id;
-  });
-
-  return data.announcements.filter(function (notice) {
-    if (notice.target === "all") {
-      return true;
-    }
-    if (user.role === "instructor" && notice.target === "instructors") {
-      return true;
-    }
-    if (user.role === "learner" && notice.target === "learners") {
-      return true;
-    }
-    return myClassIds.includes(notice.target);
-  });
-}
-
-function calculateAttendancePercent(records) {
-  if (records.length === 0) {
-    return 0;
-  }
-  const presentCount = records.filter(function (rec) {
-    return rec.status === "present" || rec.status === "late";
-  }).length;
-  return Math.round((presentCount / records.length) * 100);
-}
-
-/* =====================================================================
-   3. Login, Demo Switch & Role-Based Access
-   ===================================================================== */
-
-function findAccountByUsername(data, username) {
-  const cleanName = String(username || "").trim().toLowerCase();
-  if (cleanName === ADMIN_ACCOUNT.username) {
-    return ADMIN_ACCOUNT;
-  }
-
-  for (const inst of data.instructors) {
-    if (inst.username.toLowerCase() === cleanName) {
-      return {
-        id: inst.id,
-        username: inst.username,
-        password: inst.password,
-        role: "instructor",
-        name: inst.name
-      };
-    }
-  }
-
-  for (const lrn of data.learners) {
-    if (lrn.username.toLowerCase() === cleanName) {
-      return {
-        id: lrn.id,
-        username: lrn.username,
-        password: lrn.password,
-        role: "learner",
-        name: lrn.name
-      };
-    }
-  }
-
-  return null;
-}
-
+// ---------- 2. Login & Role-Based Access ----------
 function getCurrentUser(data) {
-  const savedUsername = localStorage.getItem(SESSION_KEY);
-  if (!savedUsername) {
-    return null;
+  const uname = localStorage.getItem(USER_KEY);
+  const found = DEMO_USERS.find((u) => u.username === uname);
+  if (!found) return null;
+
+  // Use updated learner name if learner edited their profile
+  if (found.role === "learner") {
+    const lrn = findById(data.learners, found.linkedId);
+    if (lrn) {
+      return {
+        username: found.username,
+        password: found.password,
+        role: found.role,
+        name: lrn.name,
+        linkedId: found.linkedId
+      };
+    }
   }
-  return findAccountByUsername(data, savedUsername);
+  return found;
 }
 
 function handleLogin(event) {
   event.preventDefault();
-  const data = loadData();
-  const usernameInput = document.getElementById("login-username").value.trim();
-  const passwordInput = document.getElementById("login-password").value;
+  const uname = byId("login-username").value.trim().toLowerCase();
+  const pwd = byId("login-password").value;
+  const user = DEMO_USERS.find((u) => u.username === uname && u.password === pwd);
 
-  const account = findAccountByUsername(data, usernameInput);
-  if (!account || account.password !== passwordInput) {
-    showToast("Invalid username or password. Try a Quick Demo button below.", "err");
+  if (!user) {
+    showToast("Invalid username or password. Try a Quick Demo button.", true);
     return;
   }
-
-  localStorage.setItem(SESSION_KEY, account.username);
-  document.getElementById("login-form").reset();
-  activeTabName = "";
+  localStorage.setItem(USER_KEY, user.username);
+  byId("login-form").reset();
+  currentTab = "";
   initPage();
-  showToast(`Signed in as ${account.name} (${account.role}).`, "ok");
+  showToast(`Signed in as ${user.name}.`, false);
 }
 
 function quickLogin(username) {
-  const data = loadData();
-  const account = findAccountByUsername(data, username);
-  if (!account) {
-    showToast("Demo account not found. Reset demo data if needed.", "err");
-    return;
-  }
-
-  localStorage.setItem(SESSION_KEY, account.username);
-  activeTabName = "";
+  const user = DEMO_USERS.find((u) => u.username === username);
+  if (!user) return;
+  localStorage.setItem(USER_KEY, user.username);
+  currentTab = "";
   initPage();
-  showToast(`Signed in as ${account.name} (${account.role}).`, "ok");
+  showToast(`Signed in as ${user.name} (${user.role}).`, false);
 }
 
 function logoutUser() {
-  localStorage.removeItem(SESSION_KEY);
-  activeTabName = "";
+  localStorage.removeItem(USER_KEY);
+  currentTab = "";
   initPage();
-  showToast("Signed out.", "ok");
+  showToast("Signed out.", false);
 }
 
-function updateTopbarAndRole(user) {
-  const badge = document.getElementById("nav-user-badge");
-  const nameEl = document.getElementById("nav-user-name");
-
-  if (!user) {
-    document.body.dataset.role = "guest";
-    if (badge) badge.textContent = "Guest";
-    if (nameEl) nameEl.textContent = "Not Signed In";
-    return;
-  }
-
-  document.body.dataset.role = user.role;
-  if (badge) badge.textContent = user.role;
-  if (nameEl) nameEl.textContent = user.name;
-}
-
-/* =====================================================================
-   4. Home Page (Stats, Schedule & Learner Contact Update)
-   ===================================================================== */
-
-function renderHomePage(data, user) {
-  renderHomeSchedule(data);
-  if (!user) {
-    return;
-  }
-
-  const greeting = document.getElementById("dash-greeting");
-  const visibleNotices = getVisibleAnnouncements(data, user);
-
-  if (user.role === "admin") {
-    greeting.textContent = `Signed in as ${user.name}. You have full center management access.`;
-    setStatCard(1, data.learners.length, "Learners");
-    setStatCard(2, data.instructors.length, "Volunteer Instructors");
-    setStatCard(3, data.classes.length, "Active Classes");
-    setStatCard(4, visibleNotices.length, "Announcements");
-  } else if (user.role === "instructor") {
-    const myClasses = getAccessibleClasses(data, user);
-    const myLearnerIds = [];
-    for (const cls of myClasses) {
-      for (const lrnId of cls.learnerIds) {
-        if (!myLearnerIds.includes(lrnId)) {
-          myLearnerIds.push(lrnId);
-        }
-      }
-    }
-    const myClassIds = myClasses.map(function (cls) {
-      return cls.id;
-    });
-    const myNotes = data.progressNotes.filter(function (note) {
-      return myClassIds.includes(note.classId);
-    });
-
-    greeting.textContent = `Welcome, ${user.name}. Mark attendance and share learner progress notes.`;
-    setStatCard(1, myClasses.length, "My Classes");
-    setStatCard(2, myLearnerIds.length, "My Learners");
-    setStatCard(3, myNotes.length, "Progress Notes");
-    setStatCard(4, visibleNotices.length, "Visible Notices");
-  } else {
-    const myClasses = getAccessibleClasses(data, user);
-    const myAttendance = data.attendance.filter(function (rec) {
-      return rec.learnerId === user.id;
-    });
-    const myNotes = data.progressNotes.filter(function (note) {
-      return note.learnerId === user.id;
-    });
-    const myRate = calculateAttendancePercent(myAttendance);
-
-    greeting.textContent = `Welcome, ${user.name}. Check your schedule, attendance, and contact details.`;
-    setStatCard(1, myClasses.length, "Enrolled Classes");
-    setStatCard(2, myRate + "%", "My Attendance");
-    setStatCard(3, myNotes.length, "Feedback Notes");
-    setStatCard(4, visibleNotices.length, "Visible Notices");
-    fillLearnerProfileForm(data, user.id);
-  }
-}
-
-function setStatCard(index, value, label) {
-  const valEl = document.getElementById("stat-" + index + "-val");
-  const lblEl = document.getElementById("stat-" + index + "-lbl");
-  if (valEl) valEl.textContent = value;
-  if (lblEl) lblEl.textContent = label;
-}
-
-function renderHomeSchedule(data) {
-  const tbody = document.getElementById("home-schedule-tbody");
-  if (!tbody) {
-    return;
-  }
-
-  const sorted = sortClassesBySchedule(data.classes);
-  if (sorted.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No classes scheduled yet.</td></tr>';
-    return;
-  }
-
-  let html = "";
-  for (const cls of sorted) {
-    html += `
+// ---------- 3. Home Page ----------
+function renderHome(data, user) {
+  const tbody = byId("home-schedule-tbody");
+  tbody.innerHTML = data.classes.length === 0
+    ? '<tr><td colspan="7" class="empty-msg">No classes scheduled yet.</td></tr>'
+    : data.classes.map((c) => `
       <tr>
-        <td>${escapeHtml(cls.day)}</td>
-        <td>${escapeHtml(cls.time)}</td>
-        <td><strong>${escapeHtml(cls.name)}</strong></td>
-        <td>${escapeHtml(cls.subject)}</td>
-        <td>${escapeHtml(getInstructorName(data, cls.instructorId))}</td>
-        <td>${escapeHtml(cls.room)}</td>
-        <td>${cls.learnerIds.length} / ${cls.capacity}</td>
-      </tr>
-    `;
-  }
-  tbody.innerHTML = html;
-}
+        <td>${safeText(c.day)}</td>
+        <td>${safeText(c.time)}</td>
+        <td><strong>${safeText(c.name)}</strong></td>
+        <td>${safeText(c.subject)}</td>
+        <td>${safeText(getInstructorName(data, c.instructorId))}</td>
+        <td>${safeText(c.room)}</td>
+        <td>${c.learnerIds.length} / ${c.capacity}</td>
+      </tr>`).join("");
 
-function fillLearnerProfileForm(data, learnerId) {
-  const learner = findById(data.learners, learnerId);
-  if (!learner) {
-    return;
+  if (!user) return;
+  byId("dash-greeting").textContent = `Welcome, ${user.name} (${user.role}).`;
+  byId("stat-1-val").textContent = data.learners.length;
+  byId("stat-2-val").textContent = data.instructors.length;
+  byId("stat-3-val").textContent = data.classes.length;
+  byId("stat-4-val").textContent = getVisibleNotices(data, user).length;
+
+  if (user.role === "learner") {
+    const lrn = findById(data.learners, user.linkedId);
+    if (lrn) {
+      byId("prof-name").value = lrn.name;
+      byId("prof-email").value = lrn.email;
+      byId("prof-phone").value = lrn.phone;
+      byId("prof-address").value = lrn.address;
+    }
   }
-  document.getElementById("prof-name").value = learner.name;
-  document.getElementById("prof-email").value = learner.email;
-  document.getElementById("prof-phone").value = learner.phone;
-  document.getElementById("prof-address").value = learner.address;
 }
 
 function saveLearnerProfile(event) {
   event.preventDefault();
   const data = loadData();
   const user = getCurrentUser(data);
-  if (!user || user.role !== "learner") {
-    return;
-  }
+  if (!user || user.role !== "learner") return;
 
-  const learner = findById(data.learners, user.id);
-  if (!learner) {
-    return;
-  }
-
-  learner.name = document.getElementById("prof-name").value.trim();
-  learner.email = document.getElementById("prof-email").value.trim();
-  learner.phone = document.getElementById("prof-phone").value.trim();
-  learner.address = document.getElementById("prof-address").value.trim();
+  const lrn = findById(data.learners, user.linkedId);
+  if (!lrn) return;
+  lrn.name = byId("prof-name").value.trim();
+  lrn.email = byId("prof-email").value.trim();
+  lrn.phone = byId("prof-phone").value.trim();
+  lrn.address = byId("prof-address").value.trim();
 
   saveData(data);
   initPage();
-  showToast("Contact profile updated.", "ok");
+  showToast("Profile updated.", false);
 }
 
-/* =====================================================================
-   5. Manage Page - Tabs, Learners & Volunteer Instructors
-   ===================================================================== */
-
-function getDefaultTabForRole(role) {
-  if (role === "admin") return "learners";
-  if (role === "instructor") return "attendance";
-  if (role === "learner") return "myrecords";
-  return "";
-}
-
-function isTabAllowedForRole(tabName, role) {
-  if (role === "admin") {
-    return ["learners", "classes", "attendance", "progress"].includes(tabName);
-  }
-  if (role === "instructor") {
-    return ["attendance", "progress"].includes(tabName);
-  }
-  if (role === "learner") {
-    return tabName === "myrecords";
-  }
-  return false;
-}
-
+// ---------- 4. Manage Page: Tabs, Learners, Instructors, Classes ----------
 function showTab(tabName) {
-  const data = loadData();
-  const user = getCurrentUser(data);
-  if (!user) {
-    return;
-  }
+  const user = getCurrentUser(loadData());
+  if (!user) return;
 
-  const targetTab = isTabAllowedForRole(tabName, user.role)
-    ? tabName
-    : getDefaultTabForRole(user.role);
+  const allowed = user.role === "admin"
+    ? ["learners", "classes", "attendance", "progress"]
+    : user.role === "instructor" ? ["attendance", "progress"] : ["myrecords"];
 
-  activeTabName = targetTab;
+  currentTab = allowed.includes(tabName) ? tabName : allowed[0];
 
-  const buttons = document.querySelectorAll(".tab-btn");
-  for (const btn of buttons) {
-    btn.classList.remove("active");
-  }
-
-  const panels = document.querySelectorAll(".tab-panel");
-  for (const panel of panels) {
-    panel.classList.remove("active");
-  }
-
-  const activeBtn = document.getElementById("tab-btn-" + targetTab);
-  const activePanel = document.getElementById("tab-" + targetTab);
-  if (activeBtn) activeBtn.classList.add("active");
-  if (activePanel) activePanel.classList.add("active");
+  for (const btn of document.querySelectorAll(".tab-btn")) btn.classList.remove("active");
+  for (const panel of document.querySelectorAll(".tab-panel")) panel.classList.remove("active");
+  byId("tab-btn-" + currentTab).classList.add("active");
+  byId("tab-" + currentTab).classList.add("active");
 }
 
-function renderManagePage(data, user) {
-  if (!user) {
-    return;
-  }
-
-  showTab(activeTabName || getDefaultTabForRole(user.role));
+function renderManage(data, user) {
+  if (!user) return;
+  showTab(currentTab);
 
   if (user.role === "admin") {
     renderLearners();
     renderInstructors(data);
     renderClasses(data);
   }
-
   if (user.role === "admin" || user.role === "instructor") {
-    const accessible = getAccessibleClasses(data, user);
-    populateSelect(
-      "att-class",
-      accessible,
-      function (cls) { return cls.id; },
-      function (cls) { return `${cls.name} (${cls.day} ${cls.time})`; },
-      "No assigned classes"
-    );
-    populateSelect(
-      "prog-class",
-      accessible,
-      function (cls) { return cls.id; },
-      function (cls) { return cls.name; },
-      "No assigned classes"
-    );
+    const myClasses = user.role === "admin"
+      ? data.classes
+      : data.classes.filter((c) => c.instructorId === user.linkedId);
 
-    const dateInput = document.getElementById("att-date");
-    if (dateInput && !dateInput.value) {
-      dateInput.value = getTodayDate();
-    }
+    const optionsHtml = myClasses.length === 0
+      ? '<option value="">No assigned classes</option>'
+      : myClasses.map((c) => `<option value="${safeText(c.id)}">${safeText(c.name)} (${safeText(c.day)})</option>`).join("");
+
+    byId("att-class").innerHTML = optionsHtml;
+    byId("prog-class").innerHTML = optionsHtml;
+    if (!byId("att-date").value) byId("att-date").value = new Date().toISOString().slice(0, 10);
 
     renderAttendanceSheet();
     populateProgressLearners();
-    renderProgressNotes(data, user);
+    renderProgressNotes(data);
   }
-
   if (user.role === "learner") {
     renderLearnerRecords(data, user);
   }
@@ -756,767 +260,332 @@ function renderManagePage(data, user) {
 function saveLearner(event) {
   event.preventDefault();
   const data = loadData();
-  const editId = document.getElementById("learner-edit-id").value;
-  const name = document.getElementById("learner-name").value.trim();
-  const email = document.getElementById("learner-email").value.trim();
-  const phone = document.getElementById("learner-phone").value.trim();
-  const address = document.getElementById("learner-address").value.trim();
-
-  // Check duplicate email across other learners
-  const duplicate = data.learners.some(function (lrn) {
-    return lrn.email.toLowerCase() === email.toLowerCase() && lrn.id !== editId;
+  data.learners.push({
+    id: "lrn-" + Date.now(),
+    name: byId("learner-name").value.trim(),
+    email: byId("learner-email").value.trim(),
+    phone: byId("learner-phone").value.trim(),
+    address: byId("learner-address").value.trim()
   });
-  if (duplicate) {
-    showToast("A learner with that email is already registered.", "err");
-    return;
-  }
-
-  if (editId) {
-    const existing = findById(data.learners, editId);
-    if (!existing) {
-      return;
-    }
-    existing.name = name;
-    existing.email = email;
-    existing.phone = phone;
-    existing.address = address;
-    showToast(`Updated learner ${name}.`, "ok");
-  } else {
-    const username = createUniqueUsername(data, "learner");
-    data.learners.push({
-      id: createUniqueId("lrn"),
-      username: username,
-      password: "learn123",
-      name: name,
-      email: email,
-      phone: phone,
-      address: address
-    });
-    showToast(`Registered ${name} (login: ${username} / learn123).`, "ok");
-  }
-
   saveData(data);
-  resetLearnerForm();
-  renderManagePage(data, getCurrentUser(data));
+  byId("learner-form").reset();
+  renderLearners();
+  showToast("Learner registered.", false);
 }
 
-function editLearner(learnerId) {
+function deleteLearner(id) {
   const data = loadData();
-  const learner = findById(data.learners, learnerId);
-  if (!learner) {
-    return;
-  }
-
-  document.getElementById("learner-edit-id").value = learner.id;
-  document.getElementById("learner-name").value = learner.name;
-  document.getElementById("learner-email").value = learner.email;
-  document.getElementById("learner-phone").value = learner.phone;
-  document.getElementById("learner-address").value = learner.address;
-  document.getElementById("learner-form-heading").textContent = "Edit Learner Details";
-}
-
-function resetLearnerForm() {
-  const form = document.getElementById("learner-form");
-  if (form) form.reset();
-  const editInput = document.getElementById("learner-edit-id");
-  if (editInput) editInput.value = "";
-  const heading = document.getElementById("learner-form-heading");
-  if (heading) heading.textContent = "Register New Learner";
-}
-
-function deleteLearner(learnerId) {
-  const data = loadData();
-  const learner = findById(data.learners, learnerId);
-  if (!learner) {
-    return;
-  }
-
-  if (!window.confirm(`Remove learner ${learner.name}?`)) {
-    return;
-  }
-
-  data.learners = data.learners.filter(function (lrn) {
-    return lrn.id !== learnerId;
-  });
-
-  // Clean up enrollments, attendance, and progress notes for the removed learner
-  for (const cls of data.classes) {
-    cls.learnerIds = cls.learnerIds.filter(function (id) {
-      return id !== learnerId;
-    });
-  }
-  data.attendance = data.attendance.filter(function (rec) {
-    return rec.learnerId !== learnerId;
-  });
-  data.progressNotes = data.progressNotes.filter(function (note) {
-    return note.learnerId !== learnerId;
-  });
-
-  if (document.getElementById("learner-edit-id").value === learnerId) {
-    resetLearnerForm();
-  }
-
+  data.learners = data.learners.filter((l) => l.id !== id);
+  data.attendance = data.attendance.filter((a) => a.learnerId !== id);
+  data.progressNotes = data.progressNotes.filter((n) => n.learnerId !== id);
+  for (const c of data.classes) c.learnerIds = c.learnerIds.filter((lid) => lid !== id);
   saveData(data);
-  renderManagePage(data, getCurrentUser(data));
-  showToast(`Removed learner ${learner.name}.`, "ok");
+  renderManage(data, getCurrentUser(data));
+  showToast("Learner removed.", false);
 }
 
 function renderLearners() {
-  const tbody = document.getElementById("learners-tbody");
-  const countEl = document.getElementById("learner-count");
-  const searchInput = document.getElementById("learner-search");
-  if (!tbody || !countEl) {
-    return;
-  }
-
   const data = loadData();
-  countEl.textContent = data.learners.length;
+  const query = (byId("learner-search").value || "").trim().toLowerCase();
+  byId("learner-count").textContent = data.learners.length;
 
-  const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
-  const filtered = data.learners.filter(function (lrn) {
-    return (
-      lrn.name.toLowerCase().includes(query) ||
-      lrn.email.toLowerCase().includes(query) ||
-      lrn.username.toLowerCase().includes(query)
-    );
-  });
+  const list = data.learners.filter((l) =>
+    l.name.toLowerCase().includes(query) || l.email.toLowerCase().includes(query)
+  );
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">No matching learners found.</td></tr>';
-    return;
-  }
-
-  let html = "";
-  for (const lrn of filtered) {
-    const enrolledCount = data.classes.filter(function (cls) {
-      return cls.learnerIds.includes(lrn.id);
-    }).length;
-
-    html += `
-      <tr>
-        <td>
-          <strong>${escapeHtml(lrn.name)}</strong>
-          <span class="sub-text">Login: ${escapeHtml(lrn.username)} / ${escapeHtml(lrn.password)}</span>
-        </td>
-        <td>
-          ${escapeHtml(lrn.email)}
-          <span class="sub-text">${escapeHtml(lrn.phone)} &bull; ${escapeHtml(lrn.address)}</span>
-        </td>
-        <td>${enrolledCount} class(es)</td>
-        <td>
-          <div class="btn-row">
-            <button type="button" class="btn btn-sm btn-outline" onclick="editLearner('${escapeHtml(lrn.id)}')">Edit</button>
-            <button type="button" class="btn btn-sm btn-danger" onclick="deleteLearner('${escapeHtml(lrn.id)}')">Delete</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }
-  tbody.innerHTML = html;
+  byId("learners-tbody").innerHTML = list.length === 0
+    ? '<tr><td colspan="4" class="empty-msg">No learners found.</td></tr>'
+    : list.map((l) => {
+      const enrolled = data.classes.filter((c) => c.learnerIds.includes(l.id)).length;
+      return `
+        <tr>
+          <td><strong>${safeText(l.name)}</strong><span class="sub-text">${safeText(l.address)}</span></td>
+          <td>${safeText(l.email)}<span class="sub-text">${safeText(l.phone)}</span></td>
+          <td>${enrolled} class(es)</td>
+          <td><button type="button" class="btn btn-sm btn-danger" onclick="deleteLearner('${safeText(l.id)}')">Delete</button></td>
+        </tr>`;
+    }).join("");
 }
 
 function saveInstructor(event) {
   event.preventDefault();
   const data = loadData();
-  const name = document.getElementById("inst-name").value.trim();
-  const email = document.getElementById("inst-email").value.trim();
-  const phone = document.getElementById("inst-phone").value.trim();
-  const specialty = document.getElementById("inst-spec").value.trim();
-
-  const duplicate = data.instructors.some(function (inst) {
-    return inst.email.toLowerCase() === email.toLowerCase();
-  });
-  if (duplicate) {
-    showToast("An instructor with that email already exists.", "err");
-    return;
-  }
-
-  const username = createUniqueUsername(data, "instructor");
   data.instructors.push({
-    id: createUniqueId("inst"),
-    username: username,
-    password: "inst123",
-    name: name,
-    email: email,
-    phone: phone,
-    specialty: specialty
+    id: "inst-" + Date.now(),
+    name: byId("inst-name").value.trim(),
+    email: byId("inst-email").value.trim(),
+    phone: byId("inst-phone").value.trim(),
+    specialty: byId("inst-spec").value.trim()
   });
-
   saveData(data);
-  document.getElementById("instructor-form").reset();
+  byId("instructor-form").reset();
   renderInstructors(data);
-  showToast(`Added volunteer instructor ${name} (login: ${username} / inst123).`, "ok");
+  showToast("Volunteer instructor added.", false);
 }
 
 function renderInstructors(data) {
-  const tbody = document.getElementById("instructors-tbody");
-  if (!tbody) {
-    return;
-  }
+  byId("cls-instructor").innerHTML = data.instructors.map((i) =>
+    `<option value="${safeText(i.id)}">${safeText(i.name)} (${safeText(i.specialty)})</option>`
+  ).join("");
 
-  populateSelect(
-    "cls-instructor",
-    data.instructors,
-    function (inst) { return inst.id; },
-    function (inst) { return `${inst.name} (${inst.specialty})`; },
-    "Add an instructor first"
-  );
-
-  if (data.instructors.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No volunteer instructors added yet.</td></tr>';
-    return;
-  }
-
-  let html = "";
-  for (const inst of data.instructors) {
-    const classCount = data.classes.filter(function (cls) {
-      return cls.instructorId === inst.id;
-    }).length;
-
-    html += `
-      <tr>
-        <td>
-          <strong>${escapeHtml(inst.name)}</strong>
-          <span class="sub-text">${escapeHtml(inst.username)} / ${escapeHtml(inst.password)}</span>
-        </td>
-        <td>${escapeHtml(inst.specialty)}</td>
-        <td>${classCount}</td>
-      </tr>
-    `;
-  }
-  tbody.innerHTML = html;
+  byId("instructors-tbody").innerHTML = data.instructors.map((i) => {
+    const count = data.classes.filter((c) => c.instructorId === i.id).length;
+    return `<tr><td><strong>${safeText(i.name)}</strong></td><td>${safeText(i.specialty)}</td><td>${count}</td></tr>`;
+  }).join("");
 }
-
-/* =====================================================================
-   6. Manage Page - Classes, Schedule Clash Check & Enrollment
-   ===================================================================== */
 
 function saveClass(event) {
   event.preventDefault();
   const data = loadData();
+  const instructorId = byId("cls-instructor").value;
+  const day = byId("cls-day").value;
+  const time = byId("cls-time").value;
 
-  const name = document.getElementById("cls-name").value.trim();
-  const subject = document.getElementById("cls-subject").value.trim();
-  const instructorId = document.getElementById("cls-instructor").value;
-  const day = document.getElementById("cls-day").value;
-  const time = document.getElementById("cls-time").value;
-  const room = document.getElementById("cls-room").value.trim();
-  const capacity = Number(document.getElementById("cls-capacity").value);
-
-  if (!instructorId) {
-    showToast("Please add and select an instructor first.", "err");
-    return;
-  }
-
-  // Prevent assigning the same instructor to two classes at the same day & time
-  const instructorClash = data.classes.find(function (cls) {
-    return cls.instructorId === instructorId && cls.day === day && cls.time === time;
-  });
-  if (instructorClash) {
-    showToast(`Schedule clash: instructor already teaches "${instructorClash.name}" on ${day} at ${time}.`, "err");
-    return;
-  }
-
-  // Prevent booking the same room twice at the same day & time
-  const roomClash = data.classes.find(function (cls) {
-    return cls.room.toLowerCase() === room.toLowerCase() && cls.day === day && cls.time === time;
-  });
-  if (roomClash) {
-    showToast(`Room clash: ${room} is already booked on ${day} at ${time}.`, "err");
+  // Check if the same instructor already has a class at this day and time
+  const clash = data.classes.find((c) => c.instructorId === instructorId && c.day === day && c.time === time);
+  if (clash) {
+    showToast(`Schedule clash! Instructor already teaches ${clash.name} on ${day} at ${time}.`, true);
     return;
   }
 
   data.classes.push({
-    id: createUniqueId("cls"),
-    name: name,
-    subject: subject,
+    id: "cls-" + Date.now(),
+    name: byId("cls-name").value.trim(),
+    subject: byId("cls-subject").value.trim(),
     instructorId: instructorId,
     day: day,
     time: time,
-    room: room,
-    capacity: capacity,
+    room: byId("cls-room").value.trim(),
+    capacity: Number(byId("cls-capacity").value),
     learnerIds: []
   });
-
   saveData(data);
-  document.getElementById("class-form").reset();
-  document.getElementById("cls-capacity").value = 20;
-  renderManagePage(data, getCurrentUser(data));
-  showToast(`Class "${name}" created.`, "ok");
+  byId("class-form").reset();
+  byId("cls-capacity").value = 20;
+  renderManage(data, getCurrentUser(data));
+  showToast("Class created.", false);
 }
 
 function renderClasses(data) {
-  const tbody = document.getElementById("classes-tbody");
-  if (!tbody) {
-    return;
-  }
-
-  const sorted = sortClassesBySchedule(data.classes);
-  if (sorted.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No classes created yet.</td></tr>';
-    return;
-  }
-
-  let html = "";
-  for (const cls of sorted) {
-    html += `
+  byId("classes-tbody").innerHTML = data.classes.length === 0
+    ? '<tr><td colspan="5" class="empty-msg">No classes created yet.</td></tr>'
+    : data.classes.map((c) => `
       <tr>
-        <td>
-          <strong>${escapeHtml(cls.name)}</strong>
-          <span class="sub-text">${escapeHtml(cls.subject)}</span>
-        </td>
-        <td>${escapeHtml(cls.day)} &bull; ${escapeHtml(cls.time)} (${escapeHtml(cls.room)})</td>
-        <td>${escapeHtml(getInstructorName(data, cls.instructorId))}</td>
-        <td>${cls.learnerIds.length} / ${cls.capacity}</td>
+        <td><strong>${safeText(c.name)}</strong><span class="sub-text">${safeText(c.subject)}</span></td>
+        <td>${safeText(c.day)} &bull; ${safeText(c.time)} (${safeText(c.room)})</td>
+        <td>${safeText(getInstructorName(data, c.instructorId))}</td>
+        <td>${c.learnerIds.length} / ${c.capacity}</td>
         <td>
           <div class="btn-row">
-            <button type="button" class="btn btn-sm btn-outline" onclick="openEnrollPanel('${escapeHtml(cls.id)}')">Enroll</button>
-            <button type="button" class="btn btn-sm btn-danger" onclick="deleteClass('${escapeHtml(cls.id)}')">Delete</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="openEnrollPanel('${safeText(c.id)}')">Enroll</button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="deleteClass('${safeText(c.id)}')">Delete</button>
           </div>
         </td>
-      </tr>
-    `;
-  }
-  tbody.innerHTML = html;
+      </tr>`).join("");
 }
 
 function openEnrollPanel(classId) {
   const data = loadData();
   const cls = findById(data.classes, classId);
-  if (!cls) {
-    return;
-  }
+  if (!cls) return;
 
-  document.getElementById("enroll-class-id").value = cls.id;
-  document.getElementById("enroll-class-title").textContent =
-    `Enroll Learners in ${cls.name} (Capacity: ${cls.capacity})`;
-
-  const box = document.getElementById("enroll-checkboxes");
-  if (data.learners.length === 0) {
-    box.innerHTML = '<p class="empty-msg">No registered learners yet.</p>';
-  } else {
-    let html = "";
-    for (const lrn of data.learners) {
-      const checkedAttr = cls.learnerIds.includes(lrn.id) ? "checked" : "";
-      html += `
-        <label class="check-item">
-          <input type="checkbox" value="${escapeHtml(lrn.id)}" ${checkedAttr}>
-          <span>${escapeHtml(lrn.name)}</span>
-        </label>
-      `;
-    }
-    box.innerHTML = html;
-  }
-
-  const panel = document.getElementById("enroll-panel");
-  panel.style.display = "block";
-  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  byId("enroll-class-id").value = cls.id;
+  byId("enroll-class-title").textContent = `Enroll Learners — ${cls.name} (Max ${cls.capacity})`;
+  byId("enroll-checkboxes").innerHTML = data.learners.map((l) => `
+    <label class="check-item">
+      <input type="checkbox" value="${safeText(l.id)}" ${cls.learnerIds.includes(l.id) ? "checked" : ""}>
+      <span>${safeText(l.name)}</span>
+    </label>`).join("");
+  byId("enroll-panel").style.display = "block";
 }
 
 function closeEnrollPanel() {
-  const panel = document.getElementById("enroll-panel");
-  if (panel) {
-    panel.style.display = "none";
-  }
+  byId("enroll-panel").style.display = "none";
 }
 
 function saveEnrollment() {
   const data = loadData();
-  const classId = document.getElementById("enroll-class-id").value;
-  const cls = findById(data.classes, classId);
-  if (!cls) {
+  const cls = findById(data.classes, byId("enroll-class-id").value);
+  if (!cls) return;
+
+  const selected = [];
+  for (const box of document.querySelectorAll('#enroll-checkboxes input[type="checkbox"]:checked')) {
+    selected.push(box.value);
+  }
+  if (selected.length > cls.capacity) {
+    showToast(`Limit exceeded! Max capacity is ${cls.capacity}.`, true);
     return;
   }
 
-  const checkedBoxes = document.querySelectorAll('#enroll-checkboxes input[type="checkbox"]:checked');
-  const selectedIds = [];
-  for (const box of checkedBoxes) {
-    selectedIds.push(box.value);
-  }
-
-  if (selectedIds.length > cls.capacity) {
-    showToast(`Cannot enroll ${selectedIds.length} learners (max capacity is ${cls.capacity}).`, "err");
-    return;
-  }
-
-  cls.learnerIds = selectedIds;
+  cls.learnerIds = selected;
   saveData(data);
   closeEnrollPanel();
-  renderManagePage(data, getCurrentUser(data));
-  showToast(`Saved enrollment for ${cls.name} (${selectedIds.length} learners).`, "ok");
+  renderManage(data, getCurrentUser(data));
+  showToast("Enrollment saved.", false);
 }
 
-function deleteClass(classId) {
+function deleteClass(id) {
   const data = loadData();
-  const cls = findById(data.classes, classId);
-  if (!cls) {
-    return;
-  }
-
-  if (!window.confirm(`Delete class "${cls.name}" and its attendance/notes?`)) {
-    return;
-  }
-
-  data.classes = data.classes.filter(function (item) {
-    return item.id !== classId;
-  });
-  data.attendance = data.attendance.filter(function (rec) {
-    return rec.classId !== classId;
-  });
-  data.progressNotes = data.progressNotes.filter(function (note) {
-    return note.classId !== classId;
-  });
-
-  if (document.getElementById("enroll-class-id").value === classId) {
-    closeEnrollPanel();
-  }
-
+  data.classes = data.classes.filter((c) => c.id !== id);
+  data.attendance = data.attendance.filter((a) => a.classId !== id);
+  data.progressNotes = data.progressNotes.filter((n) => n.classId !== id);
   saveData(data);
-  renderManagePage(data, getCurrentUser(data));
-  showToast(`Deleted class "${cls.name}".`, "ok");
+  closeEnrollPanel();
+  renderManage(data, getCurrentUser(data));
+  showToast("Class deleted.", false);
 }
 
-/* =====================================================================
-   7. Manage Page - Attendance & Progress Notes
-   ===================================================================== */
-
+// ---------- 5. Attendance, Progress Notes & Learner Records ----------
 function renderAttendanceSheet() {
-  const tbody = document.getElementById("att-tbody");
-  const classSelect = document.getElementById("att-class");
-  const dateInput = document.getElementById("att-date");
-  if (!tbody || !classSelect || !dateInput) {
-    return;
-  }
-
   const data = loadData();
-  const classId = classSelect.value;
-  const date = dateInput.value || getTodayDate();
-  const cls = findById(data.classes, classId);
+  const cls = findById(data.classes, byId("att-class").value);
+  const date = byId("att-date").value;
+  const tbody = byId("att-tbody");
 
   if (!cls) {
-    tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No class available to mark attendance.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No class selected.</td></tr>';
     return;
   }
 
-  const enrolledLearners = data.learners.filter(function (lrn) {
-    return cls.learnerIds.includes(lrn.id);
-  });
-
-  if (enrolledLearners.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No learners enrolled in this class yet.</td></tr>';
+  const enrolled = data.learners.filter((l) => cls.learnerIds.includes(l.id));
+  if (enrolled.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No learners enrolled in this class.</td></tr>';
     return;
   }
 
-  let html = "";
-  for (const lrn of enrolledLearners) {
-    const existing = data.attendance.find(function (rec) {
-      return rec.classId === classId && rec.date === date && rec.learnerId === lrn.id;
-    });
-    const currentStatus = existing ? existing.status : "present";
-    const radioName = "att-status-" + lrn.id;
-
-    html += `
+  tbody.innerHTML = enrolled.map((l) => {
+    const old = data.attendance.find((a) => a.classId === cls.id && a.date === date && a.learnerId === l.id);
+    const st = old ? old.status : "present";
+    return `
       <tr>
-        <td><strong>${escapeHtml(lrn.name)}</strong></td>
-        <td>${escapeHtml(lrn.phone)}</td>
+        <td><strong>${safeText(l.name)}</strong></td>
+        <td>${safeText(l.phone)}</td>
         <td>
           <div class="radio-group">
-            <label class="radio-pill">
-              <input type="radio" name="${escapeHtml(radioName)}" value="present" ${currentStatus === "present" ? "checked" : ""}>
-              Present
-            </label>
-            <label class="radio-pill">
-              <input type="radio" name="${escapeHtml(radioName)}" value="late" ${currentStatus === "late" ? "checked" : ""}>
-              Late
-            </label>
-            <label class="radio-pill">
-              <input type="radio" name="${escapeHtml(radioName)}" value="absent" ${currentStatus === "absent" ? "checked" : ""}>
-              Absent
-            </label>
+            <label class="radio-pill"><input type="radio" name="att-${safeText(l.id)}" value="present" ${st === "present" ? "checked" : ""}> Present</label>
+            <label class="radio-pill"><input type="radio" name="att-${safeText(l.id)}" value="late" ${st === "late" ? "checked" : ""}> Late</label>
+            <label class="radio-pill"><input type="radio" name="att-${safeText(l.id)}" value="absent" ${st === "absent" ? "checked" : ""}> Absent</label>
           </div>
         </td>
-      </tr>
-    `;
-  }
-  tbody.innerHTML = html;
+      </tr>`;
+  }).join("");
 }
 
 function saveAttendance() {
   const data = loadData();
-  const classId = document.getElementById("att-class").value;
-  const date = document.getElementById("att-date").value;
-  const cls = findById(data.classes, classId);
-
-  if (!cls || !date) {
-    showToast("Please select a class and date first.", "err");
+  const cls = findById(data.classes, byId("att-class").value);
+  const date = byId("att-date").value;
+  if (!cls || !date || cls.learnerIds.length === 0) {
+    showToast("Select a class with enrolled learners and a date.", true);
     return;
   }
 
-  const enrolledLearners = data.learners.filter(function (lrn) {
-    return cls.learnerIds.includes(lrn.id);
-  });
-  if (enrolledLearners.length === 0) {
-    showToast("No enrolled learners in this class to mark.", "err");
-    return;
+  for (const lrnId of cls.learnerIds) {
+    const chosen = document.querySelector(`input[name="att-${lrnId}"]:checked`);
+    const status = chosen ? chosen.value : "present";
+    const old = data.attendance.find((a) => a.classId === cls.id && a.date === date && a.learnerId === lrnId);
+    if (old) old.status = status;
+    else data.attendance.push({ classId: cls.id, date: date, learnerId: lrnId, status: status });
   }
-
-  for (const lrn of enrolledLearners) {
-    const checked = document.querySelector(`input[name="att-status-${lrn.id}"]:checked`);
-    const status = checked ? checked.value : "present";
-
-    const existing = data.attendance.find(function (rec) {
-      return rec.classId === classId && rec.date === date && rec.learnerId === lrn.id;
-    });
-
-    if (existing) {
-      existing.status = status;
-    } else {
-      data.attendance.push({
-        id: createUniqueId("att"),
-        classId: classId,
-        date: date,
-        learnerId: lrn.id,
-        status: status
-      });
-    }
-  }
-
   saveData(data);
-  showToast(`Attendance saved for ${cls.name} (${date}).`, "ok");
+  showToast(`Attendance saved for ${cls.name}.`, false);
 }
 
 function populateProgressLearners() {
-  const classSelect = document.getElementById("prog-class");
-  if (!classSelect) {
-    return;
-  }
-
   const data = loadData();
-  const cls = findById(data.classes, classSelect.value);
-  const enrolled = cls
-    ? data.learners.filter(function (lrn) { return cls.learnerIds.includes(lrn.id); })
-    : [];
+  const cls = findById(data.classes, byId("prog-class").value);
+  const enrolled = cls ? data.learners.filter((l) => cls.learnerIds.includes(l.id)) : [];
 
-  populateSelect(
-    "prog-learner",
-    enrolled,
-    function (lrn) { return lrn.id; },
-    function (lrn) { return lrn.name; },
-    "No learners enrolled in this class"
-  );
+  byId("prog-learner").innerHTML = enrolled.length === 0
+    ? '<option value="">No enrolled learners</option>'
+    : enrolled.map((l) => `<option value="${safeText(l.id)}">${safeText(l.name)}</option>`).join("");
 }
 
 function saveProgressNote(event) {
   event.preventDefault();
   const data = loadData();
   const user = getCurrentUser(data);
-  if (!user) {
-    return;
-  }
-
-  const classId = document.getElementById("prog-class").value;
-  const learnerId = document.getElementById("prog-learner").value;
-  const rating = Number(document.getElementById("prog-rating").value);
-  const comment = document.getElementById("prog-comment").value.trim();
-
+  const classId = byId("prog-class").value;
+  const learnerId = byId("prog-learner").value;
   if (!classId || !learnerId) {
-    showToast("Select a class with enrolled learners before saving a note.", "err");
+    showToast("Select a class with enrolled learners first.", true);
     return;
   }
-
-  const cls = findById(data.classes, classId);
-  const authorName = user.role === "admin" && cls
-    ? `${user.name} (${getInstructorName(data, cls.instructorId)})`
-    : user.name;
 
   data.progressNotes.unshift({
-    id: createUniqueId("note"),
     classId: classId,
     learnerId: learnerId,
-    instructorName: authorName,
-    rating: rating,
-    comment: comment,
-    date: getTodayDate()
+    author: user.name,
+    rating: Number(byId("prog-rating").value),
+    comment: byId("prog-comment").value.trim(),
+    date: new Date().toISOString().slice(0, 10)
   });
-
   saveData(data);
-  document.getElementById("prog-comment").value = "";
-  renderProgressNotes(data, user);
-  showToast("Progress note saved.", "ok");
+  byId("prog-comment").value = "";
+  renderProgressNotes(data);
+  showToast("Progress note saved.", false);
 }
 
-function renderProgressNotes(data, user) {
-  const listEl = document.getElementById("prog-list");
-  if (!listEl) {
-    return;
-  }
-
-  const visibleClassIds = getAccessibleClasses(data, user).map(function (cls) {
-    return cls.id;
-  });
-
-  const notes = user.role === "admin"
-    ? data.progressNotes
-    : data.progressNotes.filter(function (note) {
-        return visibleClassIds.includes(note.classId);
-      });
-
-  if (notes.length === 0) {
-    listEl.innerHTML = '<p class="empty-msg">No progress notes recorded yet.</p>';
-    return;
-  }
-
-  let html = "";
-  for (const note of notes) {
-    const lrn = findById(data.learners, note.learnerId);
-    const cls = findById(data.classes, note.classId);
-    const stars = "★".repeat(note.rating) + "☆".repeat(5 - note.rating);
-
-    html += `
-      <div class="feed-item">
-        <div class="feed-top">
-          <strong>${escapeHtml(lrn ? lrn.name : "Learner")} &bull; ${escapeHtml(cls ? cls.name : "Class")}</strong>
-          <span class="stars">${stars}</span>
-        </div>
-        <p>${escapeHtml(note.comment)}</p>
-        <span class="sub-text">By ${escapeHtml(note.instructorName)} on ${escapeHtml(note.date)}</span>
-      </div>
-    `;
-  }
-  listEl.innerHTML = html;
+function renderProgressNotes(data) {
+  byId("prog-list").innerHTML = data.progressNotes.length === 0
+    ? '<p class="empty-msg">No progress notes yet.</p>'
+    : data.progressNotes.map((n) => {
+      const lrn = findById(data.learners, n.learnerId);
+      const cls = findById(data.classes, n.classId);
+      const stars = "★".repeat(n.rating) + "☆".repeat(5 - n.rating);
+      return `
+        <div class="feed-item">
+          <div class="feed-top"><strong>${safeText(lrn ? lrn.name : "Learner")} &bull; ${safeText(cls ? cls.name : "Class")}</strong><span class="stars">${stars}</span></div>
+          <p>${safeText(n.comment)}</p>
+          <span class="sub-text">By ${safeText(n.author)} on ${safeText(n.date)}</span>
+        </div>`;
+    }).join("");
 }
-
-/* =====================================================================
-   8. Manage Page - Learner Personal Records
-   ===================================================================== */
 
 function renderLearnerRecords(data, user) {
-  const myClassesEl = document.getElementById("my-classes-list");
-  const myNotesEl = document.getElementById("my-notes-list");
-  const myAttTbody = document.getElementById("my-att-tbody");
-  if (!myClassesEl || !myNotesEl || !myAttTbody) {
-    return;
-  }
+  const myClasses = data.classes.filter((c) => c.learnerIds.includes(user.linkedId));
+  byId("my-classes-list").innerHTML = myClasses.length === 0
+    ? '<p class="empty-msg">Not enrolled in any class yet.</p>'
+    : myClasses.map((c) => `
+      <div class="feed-item">
+        <div class="feed-top"><strong>${safeText(c.name)}</strong><span class="pill">${safeText(c.day)} &bull; ${safeText(c.time)}</span></div>
+        <p class="muted">${safeText(c.room)} &bull; Instructor: ${safeText(getInstructorName(data, c.instructorId))}</p>
+      </div>`).join("");
 
-  const myClasses = getAccessibleClasses(data, user);
-  if (myClasses.length === 0) {
-    myClassesEl.innerHTML = '<p class="empty-msg">You are not enrolled in any classes yet.</p>';
-  } else {
-    let classesHtml = "";
-    for (const cls of myClasses) {
-      classesHtml += `
+  const myNotes = data.progressNotes.filter((n) => n.learnerId === user.linkedId);
+  byId("my-notes-list").innerHTML = myNotes.length === 0
+    ? '<p class="empty-msg">No feedback notes yet.</p>'
+    : myNotes.map((n) => {
+      const cls = findById(data.classes, n.classId);
+      return `
         <div class="feed-item">
-          <div class="feed-top">
-            <strong>${escapeHtml(cls.name)}</strong>
-            <span class="pill">${escapeHtml(cls.day)} &bull; ${escapeHtml(cls.time)}</span>
-          </div>
-          <p class="muted">Subject: ${escapeHtml(cls.subject)} &bull; Room: ${escapeHtml(cls.room)}</p>
-          <span class="sub-text">Instructor: ${escapeHtml(getInstructorName(data, cls.instructorId))}</span>
-        </div>
-      `;
-    }
-    myClassesEl.innerHTML = classesHtml;
-  }
+          <div class="feed-top"><strong>${safeText(cls ? cls.name : "Class")}</strong><span class="stars">${"★".repeat(n.rating)}</span></div>
+          <p>${safeText(n.comment)}</p>
+          <span class="sub-text">By ${safeText(n.author)} on ${safeText(n.date)}</span>
+        </div>`;
+    }).join("");
 
-  const myNotes = data.progressNotes.filter(function (note) {
-    return note.learnerId === user.id;
-  });
-  if (myNotes.length === 0) {
-    myNotesEl.innerHTML = '<p class="empty-msg">No instructor progress feedback yet.</p>';
-  } else {
-    let notesHtml = "";
-    for (const note of myNotes) {
-      const cls = findById(data.classes, note.classId);
-      const stars = "★".repeat(note.rating) + "☆".repeat(5 - note.rating);
-      notesHtml += `
-        <div class="feed-item">
-          <div class="feed-top">
-            <strong>${escapeHtml(cls ? cls.name : "Class")}</strong>
-            <span class="stars">${stars}</span>
-          </div>
-          <p>${escapeHtml(note.comment)}</p>
-          <span class="sub-text">By ${escapeHtml(note.instructorName)} on ${escapeHtml(note.date)}</span>
-        </div>
-      `;
-    }
-    myNotesEl.innerHTML = notesHtml;
-  }
-
-  const myAttendance = data.attendance
-    .filter(function (rec) {
-      return rec.learnerId === user.id;
-    })
-    .slice()
-    .sort(function (a, b) {
-      return b.date.localeCompare(a.date);
-    });
-
-  if (myAttendance.length === 0) {
-    myAttTbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No attendance recorded yet.</td></tr>';
-  } else {
-    let attHtml = "";
-    for (const rec of myAttendance) {
-      const cls = findById(data.classes, rec.classId);
-      attHtml += `
-        <tr>
-          <td>${escapeHtml(rec.date)}</td>
-          <td>${escapeHtml(cls ? cls.name : "Class")}</td>
-          <td><span class="status-tag tag-${escapeHtml(rec.status)}">${escapeHtml(rec.status)}</span></td>
-        </tr>
-      `;
-    }
-    myAttTbody.innerHTML = attHtml;
-  }
+  const myAtt = data.attendance.filter((a) => a.learnerId === user.linkedId);
+  byId("my-att-tbody").innerHTML = myAtt.length === 0
+    ? '<tr><td colspan="3" class="empty-msg">No attendance recorded yet.</td></tr>'
+    : myAtt.map((a) => {
+      const cls = findById(data.classes, a.classId);
+      return `<tr><td>${safeText(a.date)}</td><td>${safeText(cls ? cls.name : "Class")}</td><td><span class="status-tag tag-${safeText(a.status)}">${safeText(a.status)}</span></td></tr>`;
+    }).join("");
 }
 
-/* =====================================================================
-   9. Reports & Notices Page
-   ===================================================================== */
+// ---------- 6. Announcements & Summary Reports ----------
+function getVisibleNotices(data, user) {
+  if (user.role === "admin") return data.announcements;
+  const myClassIds = data.classes
+    .filter((c) => (user.role === "instructor" ? c.instructorId === user.linkedId : c.learnerIds.includes(user.linkedId)))
+    .map((c) => c.id);
 
-function getTargetLabel(data, target) {
-  if (target === "all") return "All Center Members";
-  if (target === "learners") return "All Learners";
-  if (target === "instructors") return "Volunteer Instructors";
-  const cls = findById(data.classes, target);
-  return cls ? "Class: " + cls.name : "General Notice";
-}
-
-function populateNoticeDropdowns(data, user) {
-  const targetOptions = [
-    { value: "all", label: "All Center Members" },
-    { value: "learners", label: "All Learners" }
-  ];
-  if (user.role === "admin") {
-    targetOptions.push({ value: "instructors", label: "Volunteer Instructors" });
-  }
-  for (const cls of getAccessibleClasses(data, user)) {
-    targetOptions.push({ value: cls.id, label: "Class: " + cls.name });
-  }
-  populateSelect(
-    "notice-target",
-    targetOptions,
-    function (opt) { return opt.value; },
-    function (opt) { return opt.label; },
-    "All Center Members"
-  );
-
-  const filterOptions = [
-    { value: "all", label: "All Visible Notices" },
-    { value: "general", label: "Center-Wide Notices" },
-    { value: "learners", label: "Learner Notices" }
-  ];
-  if (user.role !== "learner") {
-    filterOptions.push({ value: "instructors", label: "Instructor Notices" });
-  }
-  for (const cls of getAccessibleClasses(data, user)) {
-    filterOptions.push({ value: cls.id, label: "Class: " + cls.name });
-  }
-  populateSelect(
-    "notice-filter",
-    filterOptions,
-    function (opt) { return opt.value; },
-    function (opt) { return opt.label; },
-    "All Visible Notices"
+  return data.announcements.filter((n) =>
+    n.target === "all" ||
+    (user.role === "instructor" && n.target === "instructors") ||
+    (user.role === "learner" && n.target === "learners") ||
+    myClassIds.includes(n.target)
   );
 }
 
@@ -1524,234 +593,104 @@ function saveAnnouncement(event) {
   event.preventDefault();
   const data = loadData();
   const user = getCurrentUser(data);
-  if (!user || user.role === "learner") {
-    return;
-  }
-
-  const title = document.getElementById("notice-title").value.trim();
-  const target = document.getElementById("notice-target").value;
-  const message = document.getElementById("notice-msg").value.trim();
+  if (!user || user.role === "learner") return;
 
   data.announcements.unshift({
-    id: createUniqueId("ann"),
-    title: title,
-    target: target,
-    message: message,
+    id: "ann-" + Date.now(),
+    title: byId("notice-title").value.trim(),
+    target: byId("notice-target").value,
+    message: byId("notice-msg").value.trim(),
     author: user.name,
-    authorUsername: user.username,
-    date: getTodayDate()
-  });
-
-  saveData(data);
-  document.getElementById("notice-form").reset();
-  renderAnnouncements();
-  showToast("Announcement published.", "ok");
-}
-
-function deleteAnnouncement(noticeId) {
-  const data = loadData();
-  data.announcements = data.announcements.filter(function (item) {
-    return item.id !== noticeId;
+    date: new Date().toISOString().slice(0, 10)
   });
   saveData(data);
+  byId("notice-form").reset();
   renderAnnouncements();
-  showToast("Announcement removed.", "ok");
+  showToast("Announcement published.", false);
 }
 
 function renderAnnouncements() {
-  const listEl = document.getElementById("notices-list");
-  if (!listEl) {
-    return;
-  }
-
   const data = loadData();
   const user = getCurrentUser(data);
-  if (!user) {
-    return;
-  }
+  if (!user) return;
 
-  const filterVal = document.getElementById("notice-filter").value || "all";
-  let visible = getVisibleAnnouncements(data, user);
+  const filter = byId("notice-filter").value;
+  const visible = getVisibleNotices(data, user).filter((n) => filter === "all" || n.target === filter);
 
-  if (filterVal === "general") {
-    visible = visible.filter(function (n) { return n.target === "all"; });
-  } else if (filterVal !== "all") {
-    visible = visible.filter(function (n) { return n.target === filterVal; });
-  }
-
-  if (visible.length === 0) {
-    listEl.innerHTML = '<p class="empty-msg">No announcements match this filter.</p>';
-    return;
-  }
-
-  let html = "";
-  for (const notice of visible) {
-    const canDelete = user.role === "admin" || notice.authorUsername === user.username;
-    const deleteBtn = canDelete
-      ? `<button type="button" class="btn btn-sm btn-danger no-print" onclick="deleteAnnouncement('${escapeHtml(notice.id)}')">Delete</button>`
-      : "";
-
-    html += `
-      <div class="feed-item">
-        <div class="feed-top">
-          <strong>${escapeHtml(notice.title)}</strong>
-          <span class="pill">${escapeHtml(getTargetLabel(data, notice.target))}</span>
-        </div>
-        <p>${escapeHtml(notice.message)}</p>
-        <div class="feed-top section-gap-sm">
-          <span class="sub-text">Posted by ${escapeHtml(notice.author)} on ${escapeHtml(notice.date)}</span>
-          ${deleteBtn}
-        </div>
-      </div>
-    `;
-  }
-  listEl.innerHTML = html;
+  byId("notices-list").innerHTML = visible.length === 0
+    ? '<p class="empty-msg">No announcements to show.</p>'
+    : visible.map((n) => {
+      const cls = findById(data.classes, n.target);
+      const label = n.target === "all" ? "All" : n.target === "learners" ? "Learners" : n.target === "instructors" ? "Instructors" : (cls ? cls.name : "Class");
+      return `
+        <div class="feed-item">
+          <div class="feed-top"><strong>${safeText(n.title)}</strong><span class="pill">${safeText(label)}</span></div>
+          <p>${safeText(n.message)}</p>
+          <span class="sub-text">By ${safeText(n.author)} on ${safeText(n.date)}</span>
+        </div>`;
+    }).join("");
 }
 
-// Reusable helper to draw horizontal CSS bar rows inside Reports cards
-function renderProgressBars(containerId, items, emptyText) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-
-  if (items.length === 0) {
-    container.innerHTML = `<p class="empty-msg">${escapeHtml(emptyText)}</p>`;
-    return;
-  }
-
-  let html = "";
-  for (const item of items) {
-    const fillClass = item.accent ? "bar-fill accent" : "bar-fill";
-    const widthPct = Math.min(100, Math.max(0, item.percent));
-    html += `
-      <div>
-        <div class="bar-row-head">
-          <span>${escapeHtml(item.label)}</span>
-          <span>${escapeHtml(item.valueText)}</span>
-        </div>
-        <div class="bar-track">
-          <div class="${fillClass}" style="width: ${widthPct}%"></div>
-        </div>
-      </div>
-    `;
-  }
-  container.innerHTML = html;
+function drawBars(boxId, rows, accent) {
+  byId(boxId).innerHTML = rows.map((row) => `
+    <div>
+      <div class="bar-row-head"><span>${safeText(row.label)}</span><span>${safeText(row.text)}</span></div>
+      <div class="bar-track"><div class="${accent ? "bar-fill accent" : "bar-fill"}" style="width: ${Math.min(100, row.pct)}%"></div></div>
+    </div>`).join("");
 }
 
-function renderReportsPage(data, user) {
-  if (!user) {
-    return;
-  }
-
-  populateNoticeDropdowns(data, user);
+function renderReports(data, user) {
+  if (!user) return;
+  const classOptions = data.classes.map((c) => `<option value="${safeText(c.id)}">Class: ${safeText(c.name)}</option>`).join("");
+  byId("notice-target").innerHTML = '<option value="all">All Center Members</option><option value="learners">All Learners</option><option value="instructors">Volunteer Instructors</option>' + classOptions;
+  const instFilter = user.role !== "learner" ? '<option value="instructors">Instructors</option>' : "";
+  byId("notice-filter").innerHTML = '<option value="all">All Visible Notices</option><option value="learners">Learners</option>' + instFilter + classOptions;
   renderAnnouncements();
 
-  // Overall KPI metrics
-  const totalRate = calculateAttendancePercent(data.attendance);
-  let capacityPercentSum = 0;
-  for (const cls of data.classes) {
-    capacityPercentSum += cls.capacity > 0 ? (cls.learnerIds.length / cls.capacity) * 100 : 0;
-  }
-  const avgFill = data.classes.length > 0
-    ? Math.round(capacityPercentSum / data.classes.length)
-    : 0;
+  // Calculate top 4 KPI stats
+  let capTotal = 0;
+  for (const c of data.classes) capTotal += c.capacity > 0 ? (c.learnerIds.length / c.capacity) * 100 : 0;
+  byId("rep-att-rate").textContent = calcAttendancePercent(data.attendance) + "%";
+  byId("rep-sessions").textContent = data.attendance.length;
+  byId("rep-avg-fill").textContent = (data.classes.length ? Math.round(capTotal / data.classes.length) : 0) + "%";
+  byId("rep-notes-count").textContent = data.progressNotes.length;
 
-  document.getElementById("rep-att-rate").textContent = totalRate + "%";
-  document.getElementById("rep-sessions").textContent = data.attendance.length;
-  document.getElementById("rep-avg-fill").textContent = avgFill + "%";
-  document.getElementById("rep-notes-count").textContent = data.progressNotes.length;
-
-  // Learner personal summary
   if (user.role === "learner") {
-    const summaryEl = document.getElementById("rep-my-summary");
-    const myAtt = data.attendance.filter(function (rec) { return rec.learnerId === user.id; });
-    const present = myAtt.filter(function (rec) { return rec.status === "present"; }).length;
-    const late = myAtt.filter(function (rec) { return rec.status === "late"; }).length;
-    const absent = myAtt.filter(function (rec) { return rec.status === "absent"; }).length;
-    const myPct = calculateAttendancePercent(myAtt);
-
-    summaryEl.innerHTML = `
-      <div class="feed-item">
-        <div class="feed-top">
-          <strong>${escapeHtml(user.name)}</strong>
-          <span class="pill">Overall Attendance: ${myPct}%</span>
-        </div>
-        <p class="muted">
-          Total Records: ${myAtt.length} &bull; Present: ${present} &bull; Late: ${late} &bull; Absent: ${absent}
-        </p>
-      </div>
-    `;
+    const myAtt = data.attendance.filter((a) => a.learnerId === user.linkedId);
+    byId("rep-my-summary").innerHTML = `<div class="feed-item"><strong>${safeText(user.name)}</strong> &bull; Attendance Rate: <strong>${calcAttendancePercent(myAtt)}%</strong> (${myAtt.length} recorded sessions)</div>`;
   }
 
-  // Attendance % by Class bars
-  const sortedClasses = sortClassesBySchedule(data.classes);
-  const attBarItems = sortedClasses.map(function (cls) {
-    const records = data.attendance.filter(function (rec) {
-      return rec.classId === cls.id;
-    });
-    const pct = calculateAttendancePercent(records);
-    return {
-      label: cls.name,
-      valueText: records.length > 0 ? `${pct}% (${records.length} logs)` : "No logs yet",
-      percent: pct,
-      accent: false
-    };
-  });
-  renderProgressBars("rep-att-bars", attBarItems, "No classes available.");
+  drawBars("rep-att-bars", data.classes.map((c) => {
+    const pct = calcAttendancePercent(data.attendance.filter((a) => a.classId === c.id));
+    return { label: c.name, text: pct + "%", pct: pct };
+  }), false);
 
-  // Class Strength bars
-  const strengthBarItems = sortedClasses.map(function (cls) {
-    const pct = cls.capacity > 0 ? Math.round((cls.learnerIds.length / cls.capacity) * 100) : 0;
-    return {
-      label: cls.name,
-      valueText: `${cls.learnerIds.length} / ${cls.capacity} (${pct}%)`,
-      percent: pct,
-      accent: true
-    };
-  });
-  renderProgressBars("rep-strength-bars", strengthBarItems, "No classes available.");
+  drawBars("rep-strength-bars", data.classes.map((c) => {
+    const pct = c.capacity > 0 ? Math.round((c.learnerIds.length / c.capacity) * 100) : 0;
+    return { label: c.name, text: `${c.learnerIds.length} / ${c.capacity}`, pct: pct };
+  }), true);
 
-  // Instructor Teaching Load bars (Admin only)
   if (user.role === "admin") {
-    const maxClasses = Math.max(1, data.classes.length);
-    const loadItems = data.instructors.map(function (inst) {
-      const assigned = data.classes.filter(function (cls) {
-        return cls.instructorId === inst.id;
-      });
-      let studentTotal = 0;
-      for (const cls of assigned) {
-        studentTotal += cls.learnerIds.length;
-      }
-      return {
-        label: inst.name,
-        valueText: `${assigned.length} class(es) \u2022 ${studentTotal} seat(s)`,
-        percent: Math.round((assigned.length / maxClasses) * 100),
-        accent: false
-      };
-    });
-    renderProgressBars("rep-load-bars", loadItems, "No volunteer instructors added yet.");
+    const maxCls = Math.max(1, data.classes.length);
+    drawBars("rep-load-bars", data.instructors.map((i) => {
+      const count = data.classes.filter((c) => c.instructorId === i.id).length;
+      return { label: i.name, text: `${count} class(es)`, pct: Math.round((count / maxCls) * 100) };
+    }), false);
   }
 }
 
-/* =====================================================================
-   10. Page Initialization
-   ===================================================================== */
-
+// ---------- 7. Initialize Current Page ----------
 function initPage() {
   const data = loadData();
   const user = getCurrentUser(data);
-  updateTopbarAndRole(user);
 
-  if (document.getElementById("page-home")) {
-    renderHomePage(data, user);
-  }
-  if (document.getElementById("page-manage")) {
-    renderManagePage(data, user);
-  }
-  if (document.getElementById("page-reports")) {
-    renderReportsPage(data, user);
-  }
+  document.body.dataset.role = user ? user.role : "guest";
+  byId("nav-user-badge").textContent = user ? user.role : "Guest";
+  byId("nav-user-name").textContent = user ? user.name : "Not Signed In";
+
+  if (byId("page-home")) renderHome(data, user);
+  if (byId("page-manage")) renderManage(data, user);
+  if (byId("page-reports")) renderReports(data, user);
 }
 
 document.addEventListener("DOMContentLoaded", initPage);
