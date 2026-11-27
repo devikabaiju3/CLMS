@@ -1,18 +1,18 @@
-const DATA_KEY = "clc_data_v1";
-const USER_KEY = "clc_user_v1";
+const DATA_KEY = "clc_data_v2";
+const USER_KEY = "clc_user_v2";
 
 const DEFAULT_DATA = {
   users: [
-    { email: "admin@clc.org", password: "admin123", role: "admin", name: "Center Coordinator", linkedId: "" },
-    { email: "ananya@clc.org", password: "inst123", role: "instructor", name: "Ms. Ananya Rao", linkedId: "inst-1" },
-    { email: "aarav@mail.com", password: "learn123", role: "learner", name: "Aarav Mehta", linkedId: "lrn-1" }
+    { email: "iona@clc.org", password: "admin123", role: "admin", name: "Iona Sara Bino", linkedId: "" },
+    { email: "amreesh@clc.org", password: "inst123", role: "instructor", name: "Amreesh", linkedId: "inst-1" },
+    { email: "devika@mail.com", password: "learn123", role: "learner", name: "Devika M", linkedId: "lrn-1" }
   ],
   instructors: [
-    { id: "inst-1", name: "Ms. Ananya Rao", email: "ananya@clc.org", phone: "9876501001", specialty: "English" },
+    { id: "inst-1", name: "Amreesh", email: "amreesh@clc.org", phone: "9876501001", specialty: "English" },
     { id: "inst-2", name: "Mr. Vikram Nair", email: "vikram@clc.org", phone: "9876501002", specialty: "Coding" }
   ],
   learners: [
-    { id: "lrn-1", name: "Aarav Mehta", email: "aarav@mail.com", phone: "9876543210", address: "Sector 5" },
+    { id: "lrn-1", name: "Devika M", email: "devika@mail.com", phone: "9876543210", address: "Sector 5" },
     { id: "lrn-2", name: "Diya Sharma", email: "diya@mail.com", phone: "9876543211", address: "Green Park" }
   ],
   classes: [
@@ -25,12 +25,12 @@ const DEFAULT_DATA = {
     { classId: "cls-2", date: "2026-11-25", learnerId: "lrn-1", status: "present" }
   ],
   progressNotes: [
-    { classId: "cls-1", learnerId: "lrn-1", author: "Ms. Ananya Rao", rating: 5, comment: "Speaks clearly in group tasks.", date: "2026-11-24" }
+    { classId: "cls-1", learnerId: "lrn-1", author: "Amreesh", rating: 5, comment: "Speaks clearly in group tasks.", date: "2026-11-24" }
   ],
   announcements: [
-    { id: "ann-1", title: "Weekend Study Lab", target: "all", message: "Computer lab is open Saturday 10 AM to 2 PM.", author: "Center Coordinator", date: "2026-11-24" },
-    { id: "ann-2", title: "Bring Practice Notebook", target: "cls-1", message: "Please bring your notebook on Monday.", author: "Ms. Ananya Rao", date: "2026-11-25" },
-    { id: "ann-3", title: "Volunteer Meeting", target: "instructors", message: "Short instructor review after Friday class.", author: "Center Coordinator", date: "2026-11-26" }
+    { id: "ann-1", title: "Weekend Study Lab", target: "all", message: "Computer lab is open Saturday 10 AM to 2 PM.", author: "Iona Sara Bino", date: "2026-11-24" },
+    { id: "ann-2", title: "Bring Practice Notebook", target: "cls-1", message: "Please bring your notebook on Monday.", author: "Amreesh", date: "2026-11-25" },
+    { id: "ann-3", title: "Volunteer Meeting", target: "instructors", message: "Short instructor review after Friday class.", author: "Iona Sara Bino", date: "2026-11-26" }
   ]
 };
 
