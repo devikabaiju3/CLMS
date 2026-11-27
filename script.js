@@ -1,9 +1,9 @@
-const DATA_KEY = "clc_data_v2";
-const USER_KEY = "clc_user_v2";
+const DATA_KEY = "clc_data_v3";
+const USER_KEY = "clc_user_v3";
 
 const DEFAULT_DATA = {
   users: [
-    { email: "iona@clc.org", password: "admin123", role: "admin", name: "Iona Sara Bino", linkedId: "" },
+    { email: "iona@lpu.in", password: "admin123", role: "admin", name: "Iona Sara Bino", linkedId: "" },
     { email: "amreesh@clc.org", password: "inst123", role: "instructor", name: "Amreesh", linkedId: "inst-1" },
     { email: "devika@mail.com", password: "learn123", role: "learner", name: "Devika M", linkedId: "lrn-1" }
   ],
